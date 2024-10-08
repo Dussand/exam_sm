@@ -200,6 +200,9 @@ else:
 st.header('¿Cuál es el maximo de puntaje por carrera de cada area?')
 st.write('Revisaremos los puntajes maximos de cada carrera por cada area')
 
+max_score_periodo = resultados_exam['periodo'].unique()
+max_score_periodo_sb = st.selectbox("Selecciona el periodo de interes: ", max_score_periodo)
+
 max_score_area = resultados_exam['area_code'].sort_values().unique()
 max_score_area_sb = st.selectbox('Selecciona el area de interes: ', max_score_area)
 
