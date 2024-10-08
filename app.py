@@ -23,7 +23,7 @@ st.write('Esta página web muestra un analisis exhaustivo de los resultados de l
 C2023II = pd.read_csv('postulantes_por_carrera2023II.csv')
 C2024I = pd.read_csv('postulantes_por_carrera2024I.csv')
 C2024II = pd.read_csv('postulantes_por_carrera2024II.csv')
-C2025I = pd.read_csv('/postulantes_por_carrera2025I.csv')
+C2025I = pd.read_csv('postulantes_por_carrera2025I.csv')
 areas_sm = pd.read_csv('areas_sanmarcos')
 
 #creamos una columna con el periodo del examen para cada periodo
