@@ -430,7 +430,7 @@ else:
 
 
 ingresados_periodo = resultados_exam['periodo'].unique()
-ingresados_periodo_sb = st.('selecciona un periodo: ', ingresados_periodo)
+ingresados_periodo_sb = st.selectbox('selecciona un periodo: ', ingresados_periodo)
 
 
 
