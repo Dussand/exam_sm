@@ -425,28 +425,4 @@ else:
 
 
 
-# try_area_student = resultados_exam['area_code'].sort_values().unique()
-# try_area_student_sb = st.selectbox('Selecciona un area',try_area_student)
 
-# try_student = resultados_exam[resultados_exam['area_code'] == try_area_student_sb ]['career_1'].unique()
-# try_student_sb = st.selectbox('Selecciona la carrera a analizar', try_student)
-
-# try_student_filtered = resultados_exam[(resultados_exam['area_code'] == try_area_student_sb) & (resultados_exam['career_1'] == try_student_sb) ]
-# try_student_filtered
-
-# score_location = try_student_filtered.pivot_table(index='full_name', columns='periodo', values = 'student_id', aggfunc='count').fillna(0)
-# score_location['total_intentos'] = score_location['2023II'] + score_location['2024I'] + score_location['2024II'] + score_location['2025I']
-# score_location = score_location[score_location['total_intentos'] > 1]
-# score_location.sort_values(by = 'total_intentos', ascending=False)
-
-# mask = score_location.iloc[:,:-1] == 0
-
-# sns.heatmap(score_location.iloc[:, :-1],
-#             linecolor='black',
-#             mask = mask)
-
-<<<<<<< HEAD
-# st.pyplot(plt)
-=======
-#st.pyplot(plt)
->>>>>>> 11c32e078396f8c5a3d9b3151acff2635787032e
