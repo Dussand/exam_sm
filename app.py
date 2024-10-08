@@ -424,7 +424,7 @@ if not code_area_group.empty:
       plt.xlabel(f'CARRERA DEL AREA {code_area_selectbox}')
       plt.xticks(rotation = 90)
       st.pyplot(plt)
-      plt.clf()
+      plt.close(fig)
 else:
       st.write('No se encontraron resultados par el area de interes')
 
@@ -433,6 +433,6 @@ ingresados_periodo = resultados_exam['periodo'].unique()
 ingresados_periodo_sb = st.selectbox('selecciona un periodo: ', ingresados_periodo)
 
 
-
+#ingresados = 
 
 
