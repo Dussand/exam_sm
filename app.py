@@ -203,7 +203,7 @@ st.write('Revisaremos los puntajes maximos de cada carrera por cada area')
 max_score_periodo = resultados_exam['periodo'].unique()
 max_score_periodo_sb = st.selectbox("Selecciona el periodo de interes: ", max_score_periodo)
 
-max_score_area = resultados_exam['area_code'].sort_values().unique()
+max_score_area = resultados_exam[resultados_exam['periodo'] == max_score_periodo_sb]['area_code'].sort_values().unique()
 max_score_area_sb = st.selectbox('Selecciona el area de interes: ', max_score_area)
 
 max_score_filtered = resultados_exam[(resultados_exam['periodo'] == periodo_career_sb) & (resultados_exam['location'] == location_career_selectbox) & (resultados_exam['area_code'] == max_score_area_sb)]
