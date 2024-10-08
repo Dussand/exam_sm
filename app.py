@@ -429,5 +429,10 @@ else:
       st.write('No se encontraron resultados par el area de interes')
 
 
+ingresados_periodo = resultados_exam['periodo'].unique()
+ingresados_periodo_sb = st.('selecciona un periodo: ', ingresados_periodo)
+
+
+
 
 
