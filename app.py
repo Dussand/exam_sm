@@ -379,7 +379,7 @@ st.dataframe(competencia, hide_index = True)
 
 #ahora vamos a mostrar la cantidad de postulantes y postulantes para cada carrera por area
 
-code_area =  resultados_exam['area_code'].sort_values().unique()
+code_area =  resultados_exam[resultados_exam['periodo'] == area_periodo_selectbox]['area_code'].sort_values().unique()
 
 code_area_selectbox = st.selectbox('Selecciona la area de interes: ', code_area)
 
