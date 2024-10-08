@@ -233,10 +233,12 @@ st.dataframe(max_score) #mostramos el dataframe con los score con el puntaje max
 st.header('¿ES POSIBLE INGRESAR CON 900?')
 st.write('Veremos una proporcion de estudiantes que ingresan con un puntaje igual o mayor a 900')
 
+
+
 periodo_900 = resultados_exam['periodo'].unique()
 periodo_selectbox = st.selectbox('Selecciona el periodo a analizar:' , periodo_900)
 
-carrera_900 = resultados_exam['career_1'].unique()
+carrera_900 = resultados_exam[resultados_exam['periodo'] == periodo_selectbox]['career_1'].unique()
 carrera_selectbox = st.selectbox('Selecciona la carrera a analizar:' , carrera_900)
 
 #armamos el grafico de pie
