@@ -13,11 +13,18 @@ st.header('ANALISIS GENERAL')
 st.write('Esta página web muestra un analisis exhaustivo de los resultados de los examenes de san marcos de los periodos 2023II, 2024I, 2024II, 2025I')
 
 # Cargar datos
-C2023II = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\postulantes_por_carrera2023II.csv')
-C2024I = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\postulantes_por_carrera2024I.csv')
-C2024II = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\postulantes_por_carrera2024II.csv')
-C2025I = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\postulantes_por_carrera2025I.csv')
-areas_sm = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\areas_sanmarcos')
+
+# C2023II = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\postulantes_por_carrera2023II.csv')
+# C2024I = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\postulantes_por_carrera2024I.csv')
+# C2024II = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\postulantes_por_carrera2024II.csv')
+# C2025I = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\postulantes_por_carrera2025I.csv')
+# areas_sm = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\areas_sanmarcos')
+
+C2023II = pd.read_csv('postulantes_por_carrera2023II.csv')
+C2024I = pd.read_csv('postulantes_por_carrera2024I.csv')
+C2024II = pd.read_csv('postulantes_por_carrera2024II.csv')
+C2025I = pd.read_csv('postulantes_por_carrera2025I.csv')
+areas_sm = pd.read_csv('areas_sanmarcos')
 
 #creamos una columna con el periodo del examen para cada periodo
 C2023II['periodo'] = "2023II"
@@ -438,4 +445,8 @@ else:
 #             linecolor='black',
 #             mask = mask)
 
+<<<<<<< HEAD
 # st.pyplot(plt)
+=======
+#st.pyplot(plt)
+>>>>>>> 11c32e078396f8c5a3d9b3151acff2635787032e
