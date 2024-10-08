@@ -424,15 +424,19 @@ if not code_area_group.empty:
       plt.xlabel(f'CARRERA DEL AREA {code_area_selectbox}')
       plt.xticks(rotation = 90)
       st.pyplot(plt)
-      plt.close(fig)
+      plt.clf()
 else:
       st.write('No se encontraron resultados par el area de interes')
 
 
-ingresados_periodo = resultados_exam['periodo'].unique()
-ingresados_periodo_sb = st.selectbox('selecciona un periodo: ', ingresados_periodo)
+# ingresados_periodo = resultados_exam['periodo'].unique()
+# ingresados_periodo_sb = st.selectbox('selecciona un periodo: ', ingresados_periodo)
+# ingresados_periodo_sb_filtered = resultado_maximo[resultado_maximo['periodo'] == ingresados_periodo_sb]
 
 
-#ingresados = 
+ingresados = resultado_maximo.groupby('periodo').agg({
+    'observation':'count',
+    'student_id':'count'
+})
 
-
+st.dataframe(ingresados)
