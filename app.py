@@ -316,7 +316,7 @@ if not filtro_carrera_cohorte.empty:
       st.pyplot(plt)
       plt.clf() 
 else:
-     st.write(f'No hay datos disponibles para la carrera {cohorte_carrera_sb}.')
+    st.write(f'No hay datos disponibles para la carrera {cohorte_carrera_sb}.')
 
 
 cohorte_carrera_2 = resultados_exam['career_2'].dropna().unique()
@@ -332,7 +332,7 @@ if not filtro_carrera_cohorte_2.empty:
       st.pyplot(plt)
       plt.clf()
 else:
-        st.write(f'No hay datos disponibles para la carrera {cohorte_carrera_sb_2}.')
+    st.write(f'No hay datos disponibles para la carrera {cohorte_carrera_sb_2}.')
 
         
 st.header('¿QUIERES SABER QUE AREA ES LA MAS COMPETITIVA?')
