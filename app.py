@@ -433,10 +433,12 @@ else:
 # ingresados_periodo_sb = st.selectbox('selecciona un periodo: ', ingresados_periodo)
 # ingresados_periodo_sb_filtered = resultado_maximo[resultado_maximo['periodo'] == ingresados_periodo_sb]
 
+ingresados = resultados_exam.pivot_table(
+    index = 'periodo', columns='observation', values = 'student_id', aggfunc='count'
+).fillna(0)
 
-ingresados = resultado_maximo.groupby('periodo').agg({
-    'observation':'count',
-    'student_id':'count'
-})
+ingresados['total_students'] = ingresados['ALCANZO VACANTE PRIMERA OPCION'] + ingresados['ALCANZO VACANTE SEGUNDA OPCIÓN'] + ingresados['ANULADO'] + ingresados['AUSENTE'] + ingresados['NO ALCANZO VACANTE']
+
+ingresados['PORCENTAJE'] = ingresados['ALCANZO VACANTE PRIMERA OPCION'] / ingresados['total_students'] * 100
 
 st.dataframe(ingresados)
