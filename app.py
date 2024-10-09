@@ -129,7 +129,7 @@ idx_max_score = periodo_filter['score'].idxmax()
 if idx_max_score in periodo_filter.index:
      resultado_maximo = periodo_filter.loc[[idx_max_score], ['full_name', 'career_1', 'score']]
      st.write("Postulante con el puntaje más alto:")
-     st.dataframe(resultado_maximo)
+     st.dataframe(resultado_maximo, hide_index=True)
 else:
      print(f"Índice {idx_max_score} no encontrado en el DataFrame.")
 
