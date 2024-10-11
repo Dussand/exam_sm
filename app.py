@@ -192,17 +192,6 @@ max_score_filtered = resultados_exam[(resultados_exam['periodo'] == periodo_care
 #agrupamos por carrera y mostramos el promedio
 max_score = max_score_filtered.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].max().sort_values(ascending = False).reset_index()
 
-#Creamos un grafico de lineas
-# plt.figure(figsize = (15,6))
-# sns.lineplot(x = 'CARRERA (PRIMERA OPCION)', y = 'PUNTAJE', data=max_score, label='PUNTAJE MAXIMO DE CADA CARRERA')
-# plt.axhline(y=max_score['PUNTAJE'].mean(), color='green', linestyle='--', label='PUNTAJE PROMEDIO DEL AREA')
-# plt.xlabel('Carrera')
-# plt.ylabel('Puntaje maximo')
-# plt.title(f'Puntaje maximo por carrera en el periodo {periodo_career_sb}')
-# plt.xticks(rotation = 90)
-# plt.legend()
-# st.pyplot(plt.gcf())
-
 #mostramos un grafico de lines de la libreria plotly.express
 fig = px.line(max_score, x = 'CARRERA (PRIMERA OPCION)', y = 'PUNTAJE', title=f'Puntaje maximo por carrera en el periodo {periodo_career_sb} del área {max_score_area_sb}')
 fig.add_hline(y=max_score['PUNTAJE'].mean(), line_dash = 'dash', line_color = 'red', annotation_text =f'Promedio de puntajes totales: {round(max_score['PUNTAJE'].mean(), 2)}', annotation_position = 'top right')
@@ -217,8 +206,6 @@ st.dataframe(max_score) #mostramos el dataframe con los PUNTAJE con el puntaje m
 
 st.header('¿ES POSIBLE INGRESAR CON 900?')
 st.write('Veremos una proporcion de estudiantes que ingresan con un puntaje igual o mayor a 900')
-
-
 
 periodo_900 = resultados_exam['periodo'].unique()
 periodo_selectbox = st.selectbox('Selecciona el periodo a analizar:' , periodo_900)
@@ -237,14 +224,10 @@ proportion['proportion'] = proportion['count'] / proportion['count'].sum() * 100
 #creamos el grafico de pie
 labels = proportion['OBSERVACION'] #denominamos las etiquetas
 
-fig, ax = plt.subplots(figsize = (8,8))
-ax.pie(proportion['proportion'], labels=labels, autopct='%1.1f%%', startangle=90)
-ax.axis('equal')
-plt.title(f"PROPORCION DE LOS POSTULANTES DE LA CARRERA DE {carrera_selectbox} QUE ALCANZARON UNA VACANTE CON PUNTAJE MAYOR A 900 PUNTOS DEL {periodo_selectbox}")
+#configuramos el pie chart
+fig = px.pie(proportion, values = 'proportion', names = labels, title = f"PROPORCION DE LOS POSTULANTES DE LA CARRERA DE {carrera_selectbox} QUE ALCANZARON UNA VACANTE CON PUNTAJE MAYOR A 900 PUNTOS DEL {periodo_selectbox}" )
+st.plotly_chart(fig) #mostramos el piechart
 
-#mostramos el grafico en el web
-st.pyplot(fig)
-plt.close()
 
 st.header('¿QUE CARRERAS ESCOGEN COMO SEGUNDA OPCION')
 st.write('Tienes en mente asegurarte con una carrera como una segunda opcion, en caso no alcances una vacante a la carrera que estás postulando.\nRevisa aqui que carreras tienen mas acogida como segunda opcion a la carrera que escogiste como primera opcion')
@@ -270,13 +253,22 @@ if not segunda_opcion.empty:
         index='CARRERA (SEGUNDA OPCION)', columns='CARRERA (PRIMERA OPCION)', values = 'CODIGO DEL ESTUDIANTE', aggfunc='count'
     ).reset_index().sort_values(by = segunda_choice, ascending = False)
     heat_segundaopcion
-    plt.figure(figsize=(10,6))
-    sns.barplot(x = 'CARRERA (SEGUNDA OPCION)', y = segunda_choice, data=heat_segundaopcion )
-    plt.xticks(rotation = 90)
-    plt.xlabel('CARRERA COMO SEGUNDA OPCION')
-    plt.ylabel('CANTIDAD DE INGRESANTES')
-    plt.title(f'CANTIDAD DE ALUMNOS QUE ESCOGEN OTRA CARRERA COMO SEGUNDA OPCION DE LA CARRERA DE {segunda_choice} EN EL PERIODO {periodo_second_choice}')
-    st.pyplot(plt) 
+    # plt.figure(figsize=(10,6))
+    # sns.barplot(x = 'CARRERA (SEGUNDA OPCION)', y = segunda_choice, data=heat_segundaopcion )
+    # plt.xticks(rotation = 90)
+    # plt.xlabel('CARRERA COMO SEGUNDA OPCION')
+    # plt.ylabel('CANTIDAD DE INGRESANTES')
+    # plt.title(f'CANTIDAD DE ALUMNOS QUE ESCOGEN OTRA CARRERA COMO SEGUNDA OPCION DE LA CARRERA DE {segunda_choice} EN EL PERIODO {periodo_second_choice}')
+    # st.pyplot(plt)
+
+    fig = px.bar(
+        heat_segundaopcion,
+        x = 'CARRERA (SEGUNDA OPCION)',
+        y = segunda_choice,
+        title = f'CANTIDAD DE ALUMNOS DE LA CARRERA DE {segunda_choice} EN EL PERIODO {periodo_second_choice}'
+    )
+
+    st.plotly_chart(fig)
 
 else:
     st.write(f'No se encontraron datos para la carrera de {segunda_choice}')
@@ -290,34 +282,39 @@ cohort_location_selectbox = st.selectbox('Selecciona tu ubicacion de interes:', 
 
 cohorte_carrera = resultados_exam[resultados_exam['location'] == cohort_location_selectbox ]['CARRERA (PRIMERA OPCION)'].unique()
 cohorte_carrera_sb = st.selectbox('Selecciona la carrera: ', cohorte_carrera)
-filtro_carrera_cohorte = resultados_exam[(resultados_exam['CARRERA (PRIMERA OPCION)'] == cohorte_carrera_sb) & (resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION') & (resultados_exam['location'] == cohort_location_selectbox )]
+filtro_carrera_cohorte = resultados_exam[
+    (resultados_exam['CARRERA (PRIMERA OPCION)'] == cohorte_carrera_sb) 
+    & (resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION')
+    & (resultados_exam['location'] == cohort_location_selectbox )
+]
 
 if not filtro_carrera_cohorte.empty:
       #filtro_carrera_cohorte = resultados_exam[(resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION') ]
-      cohort_students = filtro_carrera_cohorte.pivot_table(index = 'CARRERA (PRIMERA OPCION)', columns='periodo', values='PUNTAJE', aggfunc='min')
+      cohort_students = filtro_carrera_cohorte.pivot_table(index = 'CARRERA (PRIMERA OPCION)', columns ='periodo', values ='PUNTAJE', aggfunc = 'min')
       cohort_students
       sns.heatmap(cohort_students, annot=True, fmt=".2f")
       plt.title(f'PUNTAJE MINIMO PARA INGRESAR A LA CARRERA {cohorte_carrera_sb} POR PERIODO')
       st.pyplot(plt)
-      plt.clf() 
+      plt.clf()
+      
 else:
     st.write(f'No hay datos disponibles para la carrera {cohorte_carrera_sb}.')
 
 
-cohorte_carrera_2 = resultados_exam['CARRERA (SEGUNDA OPCION)'].dropna().unique()
-cohorte_carrera_sb_2 = st.selectbox('Selecciona la carrera: ', cohorte_carrera_2)
-filtro_carrera_cohorte_2= resultados_exam[(resultados_exam['CARRERA (SEGUNDA OPCION)'] == cohorte_carrera_sb_2) & (resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE SEGUNDA OPCION')]
+# cohorte_carrera_2 = resultados_exam['CARRERA (SEGUNDA OPCION)'].dropna().unique()
+# cohorte_carrera_sb_2 = st.selectbox('Selecciona la carrera: ', cohorte_carrera_2)
+# filtro_carrera_cohorte_2= resultados_exam[(resultados_exam['CARRERA (SEGUNDA OPCION)'] == cohorte_carrera_sb_2) & (resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE SEGUNDA OPCION')]
 
-if not filtro_carrera_cohorte_2.empty:
-      #filtro_carrera_cohorte = resultados_exam[(resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION') ]
-      cohort_students_2 = filtro_carrera_cohorte_2.pivot_table(index = 'CARRERA (SEGUNDA OPCION)', columns='periodo', values='PUNTAJE', aggfunc='min')
-      cohort_students_2
-      sns.heatmap(cohort_students_2, annot=True, fmt=".2f")
-      plt.title(f'PUNTAJE MINIMO PARA INGRESAR A LA CARRERA {cohorte_carrera_sb_2} POR PERIODO')
-      st.pyplot(plt)
-      plt.clf()
-else:
-    st.write(f'No hay datos disponibles para la carrera {cohorte_carrera_sb_2}.')
+# if not filtro_carrera_cohorte_2.empty:
+#       #filtro_carrera_cohorte = resultados_exam[(resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION') ]
+#       cohort_students_2 = filtro_carrera_cohorte_2.pivot_table(index = 'CARRERA (SEGUNDA OPCION)', columns='periodo', values='PUNTAJE', aggfunc='min')
+#       cohort_students_2
+#       sns.heatmap(cohort_students_2, annot=True, fmt=".2f")
+#       plt.title(f'PUNTAJE MINIMO PARA INGRESAR A LA CARRERA {cohorte_carrera_sb_2} POR PERIODO')
+#       st.pyplot(plt)
+#       plt.clf()
+# else:
+#     st.write(f'No hay datos disponibles para la carrera {cohorte_carrera_sb_2}.')
 
         
 st.header('¿QUIERES SABER QUE AREA ES LA MAS COMPETITIVA?')
