@@ -14,73 +14,85 @@ st.write('Esta página web muestra un analisis exhaustivo de los resultados de l
 
 # Cargar datos
 
-# C2023II = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\postulantes_por_carrera2023II.csv')
-# C2024I = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\postulantes_por_carrera2024I.csv')
-# C2024II = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\postulantes_por_carrera2024II.csv')
-# C2025I = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\postulantes_por_carrera2025I.csv')
-# areas_sm = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\areas_sanmarcos')
-
-C2023II = pd.read_csv('postulantes_por_carrera2023II.csv')
-C2024I = pd.read_csv('postulantes_por_carrera2024I.csv')
-C2024II = pd.read_csv('postulantes_por_carrera2024II.csv')
-C2025I = pd.read_csv('postulantes_por_carrera2025I.csv')
+resultados_exam = pd.read_csv('resultados_exam.csv')
+# C2024I = pd.read_csv('postulantes_por_carrera2024I.csv')
+# C2024II = pd.read_csv('postulantes_por_carrera2024II.csv')
+# C2025I = pd.read_csv('postulantes_por_carrera2025I.csv')
 areas_sm = pd.read_csv('areas_sanmarcos')
 
-#creamos una columna con el periodo del examen para cada periodo
-C2023II['periodo'] = "2023II"
-C2024I['periodo'] = "2024I"
-C2024II['periodo'] = "2024II"
-C2025I['periodo'] = "2025I"
+# #creamos una columna con el periodo del examen para cada periodo
+# C2023II['periodo'] = "2023II"
+# C2024I['periodo'] = "2024I"
+# C2024II['periodo'] = "2024II"
+# C2025I['periodo'] = "2025I"
 
-#cambiamos el nombre de las columnas
+# #cambiamos el nombre de las columnas
+# columns = {
+#     'CODIGO':'student_id',
+#     'APELLIDOS Y NOMBRES':'full_name',
+#     'ESCUELA PROFESIONAL':'career_1',
+#     'PUNTAJE FINAL':'score',
+#     'MERITOE.P':'merit_order',
+#     'OBSERVACI&OacuteN':'observation'
+# }
+
+# C2023II.rename(columns=columns, inplace = True)
+
+# columns = {
+#     'CODIGO':'student_id',
+#     'APELLIDOS Y NOMBRES':'full_name',
+#     'ESCUELA PROFESIONAL':'career_1',
+#     'PUNTAJE FINAL':'score',
+#     'MERITOE.P ALCANZA VACANTE':'merit_order',
+#     'OBSERVACI&OacuteN':'observation',
+#     'ESCUELA SEGUNDA OPCIÓN':'career_2'
+# }
+
+# C2024I.rename(columns=columns, inplace = True)
+
+# columns = {
+#     'CODIGO':'student_id',
+#     'APELLIDOS Y NOMBRES':'full_name',
+#     'ESCUELA PROFESIONAL (PRIMERA OPCIÓN)':'career_1',
+#     'PUNTAJE':'score',
+#     'MERITOE.P':'merit_order',
+#     'OBSERVACI&OacuteN':'observation',
+#     'ESCUELA PROFESIONAL (SEGUNDA OPCIÓN)':'career_2'
+# }
+
+# C2024II.rename(columns=columns, inplace = True)
+
+# columns = {
+#     'CODIGO':'student_id',
+#     'APELLIDOS Y NOMBRES':'full_name',
+#     'ESCUELA PROFESIONAL':'career_1',
+#     'PUNTAJE':'score',
+#     'MERITOE.P':'merit_order',
+#     'OBSERVACI&OacuteN':'observation'
+# }
+
+# C2025I.rename(columns=columns, inplace = True)
+
 columns = {
+     
     'CODIGO':'student_id',
     'APELLIDOS Y NOMBRES':'full_name',
     'ESCUELA PROFESIONAL':'career_1',
     'PUNTAJE FINAL':'score',
     'MERITOE.P':'merit_order',
-    'OBSERVACI&OacuteN':'observation'
-}
-
-C2023II.rename(columns=columns, inplace = True)
-
-columns = {
-    'CODIGO':'student_id',
-    'APELLIDOS Y NOMBRES':'full_name',
-    'ESCUELA PROFESIONAL':'career_1',
-    'PUNTAJE FINAL':'score',
-    'MERITOE.P ALCANZA VACANTE':'merit_order',
     'OBSERVACI&OacuteN':'observation',
-    'ESCUELA SEGUNDA OPCIÓN':'career_2'
-}
-
-C2024I.rename(columns=columns, inplace = True)
-
-columns = {
-    'CODIGO':'student_id',
-    'APELLIDOS Y NOMBRES':'full_name',
+    'ESCUELA PROFESIONAL (SEGUNDA OPCIÓN)':'career_2',
+    'MERITOE.P ALCANZA VACANTE':'merit_order',
+    'ESCUELA SEGUNDA OPCIÓN':'career_2',
     'ESCUELA PROFESIONAL (PRIMERA OPCIÓN)':'career_1',
     'PUNTAJE':'score',
-    'MERITOE.P':'merit_order',
-    'OBSERVACI&OacuteN':'observation',
     'ESCUELA PROFESIONAL (SEGUNDA OPCIÓN)':'career_2'
 }
 
-C2024II.rename(columns=columns, inplace = True)
-
-columns = {
-    'CODIGO':'student_id',
-    'APELLIDOS Y NOMBRES':'full_name',
-    'ESCUELA PROFESIONAL':'career_1',
-    'PUNTAJE':'score',
-    'MERITOE.P':'merit_order',
-    'OBSERVACI&OacuteN':'observation'
-}
-
-C2025I.rename(columns=columns, inplace = True)
+resultados_exam.rename(columns=columns, inplace = True)
 
 #anexamos los dataframes
-resultados_exam = pd.concat([C2023II, C2024I, C2024II, C2025I], ignore_index = True)
+#resultados_exam = pd.concat([C2023II, C2024I, C2024II, C2025I], ignore_index = True)
 
 #separamos las ciudades de las carreras para un mejor analisis
 resultados_exam['location'] = resultados_exam['career_1'].str.extract(r' - (.+)')  # Extraer 'LIMA'
