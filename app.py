@@ -14,7 +14,7 @@ st.write('Esta página web muestra un analisis exhaustivo de los resultados de l
 
 # Cargar datos
 
-resultados_exam = pd.read_csv('resultados_exam.csv')
+resultados_exam = pd.read_csv('data_scrap/resultados_exam.csv')
 # C2024I = pd.read_csv('postulantes_por_carrera2024I.csv')
 # C2024II = pd.read_csv('postulantes_por_carrera2024II.csv')
 # C2025I = pd.read_csv('postulantes_por_carrera2025I.csv')
