@@ -13,8 +13,8 @@ st.header('ANALISIS GENERAL')
 st.write('Esta página web muestra un analisis exhaustivo de los resultados de los examenes de san marcos de los periodos 2023II, 2024I, 2024II, 2025I')
 
 # Cargar datos
-resultados_exam = pd.read_csv('resultados_exam.csv')
-areas_sm = pd.read_csv('areas_sanmarcos')
+resultados_exam = pd.read_csv('data_scrap/resultados_exam.csv')
+areas_sm = pd.read_csv('data_scrap/areas_sanmarcos')
 
 #eliminamos la primera columna que no sirve
 resultados_exam = resultados_exam.drop(resultados_exam.columns[0], axis=1)
