@@ -154,16 +154,20 @@ career_period_filtered[career_period_filtered['OBSERVACION'] == 'ALCANZO VACANTE
 
 # Verificar si hay datos para la carrera especificada
 if not career_period_filtered.empty:
-        # Crear un histograma de los puntajes
-        plt.figure(figsize=(10, 6))
-        sns.histplot(career_period_filtered['PUNTAJE'], bins=10, kde=True)  # Agregar KDE para suavizar la curva
-        plt.title(f'DISTRIBUCIÓN DE PUNTAJES EN {career_sb} - {periodo_career_sb}')
-        plt.xlabel('Puntaje')
-        plt.ylabel('Frecuencia')
-        plt.axvline(career_period_filtered['PUNTAJE'].max(), color='green', linestyle='--', label='Puntaje Máximo')
-        plt.axvline(career_period_filtered[career_period_filtered['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION']['PUNTAJE'].min(), color='red', linestyle='--', label='Puntaje Minimo de ingreso')
-        plt.legend()
-        st.pyplot(plt.gcf())
+        fig = px.histogram(career_period_filtered, x = 'PUNTAJE', nbins = 10, title = f'DISTRUBCION DE LOS PUNTAJES DE {career_sb} EN EL PERIODO {periodo_career_sb}')
+        fig.update_traces(histnorm = 'density', marker_color = 'skyblue')
+        fig.add_vline(
+            x=career_period_filtered['PUNTAJE'].max(), 
+            line_width=2, line_dash='dash', 
+            line_color='green',  
+            annotation_text=f"Puntaje Máximo: {career_period_filtered['PUNTAJE'].max()}"
+        )
+        fig.add_vline(
+            x=career_period_filtered[career_period_filtered['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION']['PUNTAJE'].min(), 
+            line_width=2, line_dash='dash', line_color='red',
+            annotation_text=f"Puntaje Máximo: {career_period_filtered[career_period_filtered['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION']['PUNTAJE'].min()}"
+        )
+        st.plotly_chart(fig)
         
         # Imprimir el puntaje máximo
         max_PUNTAJE = career_period_filtered['PUNTAJE'].max()
