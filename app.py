@@ -191,7 +191,7 @@ max_score = max_score_filtered.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].ma
 
 plt.figure(figsize = (15,6))
 sns.lineplot(x = 'CARRERA (PRIMERA OPCION)', y = 'PUNTAJE', data=max_score, label='PUNTAJE MAXIMO DE CADA CARRERA')
-plt.axhline(y=max_PUNTAJE['PUNTAJE'].mean(), color='green', linestyle='--', label='PUNTAJE PROMEDIO DEL AREA')
+plt.axhline(y=max_score['PUNTAJE'].mean(), color='green', linestyle='--', label='PUNTAJE PROMEDIO DEL AREA')
 plt.xlabel('Carrera')
 plt.ylabel('Puntaje maximo')
 plt.title(f'Puntaje maximo por carrera en el periodo {periodo_career_sb}')
@@ -199,11 +199,11 @@ plt.xticks(rotation = 90)
 plt.legend()
 st.pyplot(plt.gcf())
 
-promedio_puntaje = max_PUNTAJE['PUNTAJE'].mean()
+promedio_puntaje = max_score['PUNTAJE'].mean()
 
 st.write(f'PUNTAJE PROMEDIO DEL AREA {max_score_area_sb} DEL PERIODO {periodo_career_sb} FUE DE: {promedio_puntaje:.2f} PTS ')
 
-st.dataframe(max_PUNTAJE) #mostramos el dataframe con los PUNTAJE con el puntaje maximo de las carreras
+st.dataframe(max_score) #mostramos el dataframe con los PUNTAJE con el puntaje maximo de las carreras
 
 st.header('¿ES POSIBLE INGRESAR CON 900?')
 st.write('Veremos una proporcion de estudiantes que ingresan con un puntaje igual o mayor a 900')
