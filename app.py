@@ -187,18 +187,23 @@ max_score_filtered = resultados_exam[(resultados_exam['periodo'] == periodo_care
 
 #agrupamos por carrera y mostramos el promedio
 max_score = max_score_filtered.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].max().sort_values(ascending = False).reset_index()
-max_score
 
 #Creamos un grafico de lineas
-plt.figure(figsize = (15,6))
-sns.lineplot(x = 'CARRERA (PRIMERA OPCION)', y = 'PUNTAJE', data=max_score, label='PUNTAJE MAXIMO DE CADA CARRERA')
-plt.axhline(y=max_score['PUNTAJE'].mean(), color='green', linestyle='--', label='PUNTAJE PROMEDIO DEL AREA')
-plt.xlabel('Carrera')
-plt.ylabel('Puntaje maximo')
-plt.title(f'Puntaje maximo por carrera en el periodo {periodo_career_sb}')
-plt.xticks(rotation = 90)
-plt.legend()
-st.pyplot(plt.gcf())
+# plt.figure(figsize = (15,6))
+# sns.lineplot(x = 'CARRERA (PRIMERA OPCION)', y = 'PUNTAJE', data=max_score, label='PUNTAJE MAXIMO DE CADA CARRERA')
+# plt.axhline(y=max_score['PUNTAJE'].mean(), color='green', linestyle='--', label='PUNTAJE PROMEDIO DEL AREA')
+# plt.xlabel('Carrera')
+# plt.ylabel('Puntaje maximo')
+# plt.title(f'Puntaje maximo por carrera en el periodo {periodo_career_sb}')
+# plt.xticks(rotation = 90)
+# plt.legend()
+# st.pyplot(plt.gcf())
+
+#mostramos un grafico de lines de la libreria plotly.express
+fig = px.line(max_score, x = 'CARRERA (PRIMERA OPCION)', y = 'PUNTAJE', title=f'Puntaje maximo por carrera en el periodo {periodo_career_sb} del área {max_score_area_sb}')
+fig.add_hline(y=max_score['PUNTAJE'].mean(), line_dash = 'dash', line_color = 'red', annotation_text =f'Promedio de puntajes totales: {round(max_score['PUNTAJE'].mean(), 2)}', annotation_position = 'top right')
+fig.update_layout(width=1000, height=700)
+st.plotly_chart(fig)
 
 promedio_puntaje = max_score['PUNTAJE'].mean()
 
