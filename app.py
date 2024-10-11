@@ -176,23 +176,22 @@ else:
 st.header('¿Cuál es el maximo de puntaje por carrera de cada area?')
 st.write('Revisaremos los puntajes maximos de cada carrera por cada area')
 
-max_PUNTAJE_periodo = resultados_exam['periodo'].unique()
-max_PUNTAJE_periodo_sb = st.selectbox("Selecciona el periodo de interes: ", max_PUNTAJE_periodo)
+max_score_periodo = resultados_exam['periodo'].unique()
+max_score_periodo_sb = st.selectbox("Selecciona el periodo de interes: ", max_score_periodo)
 
-max_PUNTAJE_area = resultados_exam[resultados_exam['periodo'] == max_PUNTAJE_periodo_sb]['CODIGO DE AREA'].sort_values().unique()
-max_PUNTAJE_area_sb = st.selectbox('Selecciona el area de interes: ', max_PUNTAJE_area)
+max_score_area = resultados_exam[resultados_exam['periodo'] == max_score_periodo_sb]['CODIGO DE AREA'].sort_values().unique()
+max_score_area_sb = st.selectbox('Selecciona el area de interes: ', max_score_area)
 
-max_PUNTAJE_filtered = resultados_exam[(resultados_exam['periodo'] == periodo_career_sb) & (resultados_exam['location'] == location_career_selectbox) & (resultados_exam['CODIGO DE AREA'] == max_PUNTAJE_area_sb)]
+max_score_filtered = resultados_exam[(resultados_exam['periodo'] == periodo_career_sb) & (resultados_exam['location'] == location_career_selectbox) & (resultados_exam['CODIGO DE AREA'] == max_score_area_sb)]
 
 #agrupamos por carrera y mostramos el promedio
-max_PUNTAJE = max_PUNTAJE_filtered.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].max().sort_values(ascending = False).reset_index()
+max_score = max_score_filtered.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].max().sort_values(ascending = False).reset_index()
 #top10 = max_PUNTAJE.nlargest(20, 'PUNTAJE')
 #Creamos un grafico de lineas
 
 plt.figure(figsize = (15,6))
-sns.lineplot(x = 'CARRERA (PRIMERA OPCION)', y = 'PUNTAJE', data=max_PUNTAJE, label='PUNTAJE MAXIMO DE CADA CARRERA')
+sns.lineplot(x = 'CARRERA (PRIMERA OPCION)', y = 'PUNTAJE', data=max_score, label='PUNTAJE MAXIMO DE CADA CARRERA')
 plt.axhline(y=max_PUNTAJE['PUNTAJE'].mean(), color='green', linestyle='--', label='PUNTAJE PROMEDIO DEL AREA')
-#plt.text(max_PUNTAJE['PUNTAJE'].mean(), plt.ylim()[1] * 0.9, f'{max_PUNTAJE['PUNTAJE'].mean()}', ha='center', color='green')
 plt.xlabel('Carrera')
 plt.ylabel('Puntaje maximo')
 plt.title(f'Puntaje maximo por carrera en el periodo {periodo_career_sb}')
@@ -202,7 +201,7 @@ st.pyplot(plt.gcf())
 
 promedio_puntaje = max_PUNTAJE['PUNTAJE'].mean()
 
-st.write(f'PUNTAJE PROMEDIO DEL AREA {max_PUNTAJE_area_sb} DEL PERIODO {periodo_career_sb} FUE DE: {promedio_puntaje:.2f} PTS ')
+st.write(f'PUNTAJE PROMEDIO DEL AREA {max_score_area_sb} DEL PERIODO {periodo_career_sb} FUE DE: {promedio_puntaje:.2f} PTS ')
 
 st.dataframe(max_PUNTAJE) #mostramos el dataframe con los PUNTAJE con el puntaje maximo de las carreras
 
