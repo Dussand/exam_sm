@@ -150,7 +150,7 @@ filtered_careers = resultados_exam[resultados_exam['location'] == location_caree
 career_sb = st.selectbox('Selecciona una carrera a analizar', filtered_careers)
 #filtramos los datos con el periodo seleccionado
 career_period_filtered = resultados_exam[(resultados_exam['location'] == location_career_selectbox) & (resultados_exam['CARRERA (PRIMERA OPCION)'] == career_sb) & (resultados_exam['periodo'] == periodo_career_sb)]
-career_period_filtered[career_period_filtered['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION'] 
+career_period_filtered 
 
 # Verificar si hay datos para la carrera especificada
 if not career_period_filtered.empty:
