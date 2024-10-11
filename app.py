@@ -75,6 +75,8 @@ st.dataframe(resultados_exam)
 
 # C2025I.rename(columns=columns, inplace = True)
 
+resultados_exam = resultados_exam.dropna('', axis=1)
+
 columns = {
      
     'CODIGO':'student_id',
