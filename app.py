@@ -18,7 +18,7 @@ resultados_exam = pd.read_csv('data_scrap/resultados_exam.csv')
 # C2024I = pd.read_csv('postulantes_por_carrera2024I.csv')
 # C2024II = pd.read_csv('postulantes_por_carrera2024II.csv')
 # C2025I = pd.read_csv('postulantes_por_carrera2025I.csv')
-areas_sm = pd.read_csv('areas_sanmarcos')
+areas_sm = pd.read_csv('data_scrap/areas_sanmarcos')
 #eliminamos la primera columna que no sirve
 resultados_exam = resultados_exam.drop(resultados_exam.columns[0], axis=1)
 
