@@ -20,6 +20,8 @@ resultados_exam = pd.read_csv('resultados_exam.csv')
 # C2025I = pd.read_csv('postulantes_por_carrera2025I.csv')
 areas_sm = pd.read_csv('areas_sanmarcos')
 
+
+st.dataframe(resultados_exam)
 # #creamos una columna con el periodo del examen para cada periodo
 # C2023II['periodo'] = "2023II"
 # C2024I['periodo'] = "2024I"
@@ -90,7 +92,7 @@ columns = {
 }
 
 resultados_exam.rename(columns=columns, inplace = True)
-st.dataframe(resultados_exam)
+
 
 #anexamos los dataframes
 #resultados_exam = pd.concat([C2023II, C2024I, C2024II, C2025I], ignore_index = True)
