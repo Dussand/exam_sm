@@ -90,7 +90,7 @@ columns = {
 }
 
 resultados_exam.rename(columns=columns, inplace = True)
-
+resultados_exam
 #anexamos los dataframes
 #resultados_exam = pd.concat([C2023II, C2024I, C2024II, C2025I], ignore_index = True)
 
