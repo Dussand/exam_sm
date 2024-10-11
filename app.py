@@ -14,7 +14,7 @@ st.write('Esta página web muestra un analisis exhaustivo de los resultados de l
 
 # Cargar datos
 resultados_exam = pd.read_csv('resultados_exam.csv')
-areas_sm = pd.read_csv('areas_sanmarcos')
+areas_sm = pd.read_csv('data_scrap/areas_sanmarcos')
 
 #eliminamos la primera columna que no sirve
 resultados_exam = resultados_exam.drop(resultados_exam.columns[0], axis=1)
