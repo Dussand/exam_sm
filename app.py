@@ -150,7 +150,7 @@ filtered_careers = resultados_exam[resultados_exam['location'] == location_caree
 career_sb = st.selectbox('Selecciona una carrera a analizar', filtered_careers)
 #filtramos los datos con el periodo seleccionado
 career_period_filtered = resultados_exam[(resultados_exam['location'] == location_career_selectbox) & (resultados_exam['CARRERA (PRIMERA OPCION)'] == career_sb) & (resultados_exam['periodo'] == periodo_career_sb)]
-career_period_filtered 
+career_period_filtered[career_period_filtered['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION'] 
 
 # Verificar si hay datos para la carrera especificada
 if not career_period_filtered.empty:
@@ -176,6 +176,7 @@ else:
 st.header('¿Cuál es el maximo de puntaje por carrera de cada area?')
 st.write('Revisaremos los puntajes maximos de cada carrera por cada area')
 
+
 max_score_periodo = resultados_exam['periodo'].unique()
 max_score_periodo_sb = st.selectbox("Selecciona el periodo de interes: ", max_score_periodo)
 
@@ -186,9 +187,9 @@ max_score_filtered = resultados_exam[(resultados_exam['periodo'] == periodo_care
 
 #agrupamos por carrera y mostramos el promedio
 max_score = max_score_filtered.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].max().sort_values(ascending = False).reset_index()
-#top10 = max_PUNTAJE.nlargest(20, 'PUNTAJE')
-#Creamos un grafico de lineas
+max_score
 
+#Creamos un grafico de lineas
 plt.figure(figsize = (15,6))
 sns.lineplot(x = 'CARRERA (PRIMERA OPCION)', y = 'PUNTAJE', data=max_score, label='PUNTAJE MAXIMO DE CADA CARRERA')
 plt.axhline(y=max_score['PUNTAJE'].mean(), color='green', linestyle='--', label='PUNTAJE PROMEDIO DEL AREA')
