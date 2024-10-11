@@ -21,7 +21,7 @@ resultados_exam = pd.read_csv('resultados_exam.csv')
 areas_sm = pd.read_csv('areas_sanmarcos')
 
 
-st.dataframe(resultados_exam)
+
 # #creamos una columna con el periodo del examen para cada periodo
 # C2023II['periodo'] = "2023II"
 # C2024I['periodo'] = "2024I"
@@ -76,7 +76,7 @@ st.dataframe(resultados_exam)
 # C2025I.rename(columns=columns, inplace = True)
 
 resultados_exam = resultados_exam.dropna('', axis=1)
-
+st.dataframe(resultados_exam)
 columns = {
      
     'CODIGO':'student_id',
