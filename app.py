@@ -476,3 +476,4 @@ fig = px.funnel(
 #mostramos el embudo
 st.plotly_chart(fig)
 
+st.header('HOLAAAA')
