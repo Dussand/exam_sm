@@ -409,7 +409,7 @@ st.dataframe(competencia, hide_index = True)
 
 #Veremos cuantos estudiantes ingresaron por carrera y periodo
 st.header('¿QUIERES SABER EL PORCENTAJE DE INGRESADOS EN LA CARRERA QUE ELEGISTE?')
-st.write('Este embudo que se muestra te muestra el porcentaje de postulantes que ingresaron a la carrera que elegiste')
+st.write('Este embudo que se muestra te muestra el porcentaje de postulantes que ingresaron a la carrera que elegiste, muchachon')
 
 #colocamos un selectbox que nos filtre por periodo
 funnel_periodo = resultados_exam['periodo'].unique()
