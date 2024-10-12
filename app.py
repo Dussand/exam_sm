@@ -139,7 +139,10 @@ ingresados['total_students'] = ingresados['ALCANZO VACANTE PRIMERA OPCION'] + in
 
 ingresados['PORCENTAJE'] = ingresados['ALCANZO VACANTE PRIMERA OPCION'] / ingresados['total_students'] * 100
 
-st.dataframe(ingresados)
+# Formatea como porcentaje después de ordenar
+ingresados['PORCENTAJE'] = ingresados['PORCENTAJE'].apply(lambda x: f'{x:.2f}%')
+
+st.dataframe(ingresados['PORCENTAJE'])
 
 fig = go.Figure()
 
@@ -404,79 +407,72 @@ competencia['proportion'] = competencia['proportion'].apply(lambda x: f'{x:.2f}%
 
 st.dataframe(competencia, hide_index = True)
 
-#ahora vamos a mostrar la cantidad de postulantes y postulantes para cada carrera por area
+#Veremos cuantos estudiantes ingresaron por carrera y periodo
+st.header('¿QUIERES SABER EL PORCENTAJE DE INGRESADOS EN LA CARRERA QUE ELEGISTE?')
+st.write('Este embudo que se muestra te muestra el porcentaje de postulantes que ingresaron a la carrera que elegiste')
 
-code_area =  resultados_exam[resultados_exam['periodo'] == area_periodo_selectbox]['CODIGO DE AREA'].sort_values().unique()
+#colocamos un selectbox que nos filtre por periodo
+funnel_periodo = resultados_exam['periodo'].unique()
+funnel_periodo_sb = st.selectbox('Selecciona un periodo:' , funnel_periodo)
 
-code_area_selectbox = st.selectbox('Selecciona la area de interes: ', code_area)
+#colocamos un selectbox que nos filtre por periodo y por el codigo del area
+funnel_area = resultados_exam[resultados_exam['periodo'] == funnel_periodo_sb]['CODIGO DE AREA'].unique()
+funnel_area_sb  = st.selectbox('Selecciona un area:', funnel_area)
 
-code_area_filtered = resultados_exam[(resultados_exam['CODIGO DE AREA'] == code_area_selectbox) & (resultados_exam['periodo'] == area_periodo_selectbox)]
+#colocamos un selectbox que nos filtre por periodo el codigo del area para poder escoger una carrera
+funnel_career = resultados_exam[(resultados_exam['periodo'] == funnel_periodo_sb) & (resultados_exam['CODIGO DE AREA'] == funnel_area_sb)]['CARRERA (PRIMERA OPCION)'].unique()
+funnel_career_sb = st.selectbox('Selecciona una carrera: ', funnel_career)
 
-code_area_group = code_area_filtered.pivot_table(
-    index='CARRERA (PRIMERA OPCION)', columns='OBSERVACION', values = 'CODIGO DEL ESTUDIANTE', aggfunc = 'count'
-).fillna(0)
+#filtramos el df para que nos muestre solo la carrera la seleccionada
+funnel_filteresd = resultados_exam[
+    (resultados_exam['periodo'] == funnel_periodo_sb) 
+    & (resultados_exam['CODIGO DE AREA'] == funnel_area_sb)
+    & (resultados_exam['CARRERA (PRIMERA OPCION)'] == funnel_career_sb)
+]
 
+#creamos una tabla pivot para tener un mejor analisis de los datos
+funnel = funnel_filteresd.pivot_table(
+    index = 'CARRERA (PRIMERA OPCION)',
+    columns= 'OBSERVACION',
+    values= 'CODIGO DEL ESTUDIANTE',
+    aggfunc='count'
+).fillna(0).reset_index()
 
-code_area_group['TOTAL POSTULANTES'] = (
-      code_area_group.get('ALCANZO VACANTE PRIMERA OPCION', 0) 
-      + code_area_group.get('ALCANZO VACANTE SEGUNDA OPCION', 0)
-      + code_area_group.get('ANULADO', 0)
-      + code_area_group.get('AUSENTE', 0)
-      + code_area_group.get('NO ALCANZO VACANTE', 0)
+#creamos una columna mas con la suma del total de estudiantes
+funnel['TOTAL ESTUDIANTES'] = (
+        funnel.get('ALCANZO VACANTE PRIMERA OPCION', 0) 
+      + funnel.get('ALCANZO VACANTE SEGUNDA OPCION', 0)
+      + funnel.get('ANULADO', 0)
+      + funnel.get('AUSENTE', 0)
+      + funnel.get('NO ALCANZO VACANTE', 0)
 )
 
-code_area_group = code_area_group[
-    ['ALCANZO VACANTE PRIMERA OPCION', 'TOTAL POSTULANTES']
-].dropna(axis = 1)
 
-code_area_group['proportion'] = ((
-      code_area_group['ALCANZO VACANTE PRIMERA OPCION']
+#creamos 3 columnas con el porcentaje de cada observacion en base a la cantidad de alumnos
+funnel['ALCANZO VACANTE PRIMERA OPCION (%)'] = (funnel['ALCANZO VACANTE PRIMERA OPCION'] / funnel['TOTAL ESTUDIANTES']) * 100
+funnel['NO ALCANZO VACANTE (%)'] = (funnel['NO ALCANZO VACANTE'] / funnel['TOTAL ESTUDIANTES']) * 100
+funnel['TOTAL ESTUDIANTES (%)'] = (funnel['TOTAL ESTUDIANTES'] / funnel['TOTAL ESTUDIANTES']) *100 
 
-) / code_area_group['TOTAL POSTULANTES'] * 100)
+#utilizamso el metodo melt para tener un mayor orden en el df y poder armar el embudo que queremos
+melted_df = pd.melt(funnel, 
+                     id_vars=['CARRERA (PRIMERA OPCION)'], 
+                     value_vars=['ALCANZO VACANTE PRIMERA OPCION (%)','TOTAL ESTUDIANTES (%)'],
+                     var_name='ESTADO', 
+                     value_name='CANTIDAD').sort_values(by = 'CANTIDAD' , ascending=False)
 
-# Ordena los valores numéricos
-code_area_group = code_area_group.sort_values('proportion')
+#colocamos en porcentaje la cantidad calculada
+melted_df['CANTIDAD'] = melted_df['CANTIDAD'].apply(lambda x: f'{x:.2f}%')
+melted_df
 
-# Formatea como porcentaje después de ordenar
-code_area_group['proportion'] = code_area_group['proportion'].apply(lambda x: f'{x:.2f}%')
+#armamos el embudo 
+fig = px.funnel(
+      melted_df,
+      x = 'ESTADO',
+      y = 'CANTIDAD',
+      title= f'CANTIDAD DE ALUMNOS INGRESADOS A {funnel_career_sb} EN EL PERIODO {funnel_periodo_sb}',
+      
+      )
 
-st.dataframe(code_area_group)
-
-if not code_area_group.empty:
-
-        fig = go.Figure()
-
-        fig.add_trace(
-
-            go.Bar(
-                x = code_area_group.index,
-                y = code_area_group['TOTAL POSTULANTES'],
-                name = 'TOTAL POSTULANTES'
-            )
-        )
-
-        fig.add_trace(
-            go.Line(
-                x = code_area_group.index,
-                y = code_area_group['ALCANZO VACANTE PRIMERA OPCION'],
-                mode = 'lines+markers',
-                name = 'ALCANZO VACANTE PRIMERA OPCION'
-            )
-        )
-
-        fig.update_layout(
-            title = f'TOTAL POSTULANTES Y VACANTES ALCANZADAS EN EL AREA {code_area_selectbox} EN EL PERIODO {area_periodo_selectbox}',
-            xaxis_title = 'CARRERAS (PRIMERA OPCION)',
-            yaxis_title = 'CANTIDAD'
-        )
-
-        st.plotly_chart(fig)
-else:
-      st.write('No se encontraron resultados par el area de interes')
-
-
-# ingresados_periodo = resultados_exam['periodo'].unique()
-# ingresados_periodo_sb = st.selectbox('selecciona un periodo: ', ingresados_periodo)
-# ingresados_periodo_sb_filtered = resultado_maximo[resultado_maximo['periodo'] == ingresados_periodo_sb]
-
+#mostramos el embudo
+st.plotly_chart(fig)
 
