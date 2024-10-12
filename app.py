@@ -56,7 +56,6 @@ resultados_exam = unir_columnas(resultados_exam, 'PUESTO', 'PUESTO_1')
 resultados_exam = unir_columnas(resultados_exam, 'CARRERA (PRIMERA OPCION)', 'CARRERA (PRIMERA OPCION)_1')
 resultados_exam = unir_columnas(resultados_exam, 'PUNTAJE', 'PUNTAJE_1')
 resultados_exam = unir_columnas(resultados_exam, 'CARRERA (SEGUNDA OPCION)', 'CARRERA (SEGUNDA OPCION)_1')
-st.dataframe(resultados_exam)
 
 #separamos las ciudades de las carreras para un mejor analisis
 resultados_exam['location'] = resultados_exam['CARRERA (PRIMERA OPCION)'].str.extract(r' - (.+)')  # Extraer 'LIMA'
@@ -127,8 +126,54 @@ if name_searched:
 #mostraaremos los puntajes mas altos junto a la carrera y estudiante
 
 st.header('ANALISIS DETALLADO')
+st.subheader('En esta seccion se mostrarán graficos y tablas con mas detalles de analisis por periodo y por carrera.')
 
-st.write('En esta seccion se mostrarán graficos y tablas con mas detalles de analisis por periodo y por carrera.')
+st.header('PORCENTAJE DE INGRESADOS POR PERIODO')
+st.write('Esta tabla muestra el porcentaje de alumnos que alcanzaro una vacante en el examen de la UNMSM.')
+
+ingresados = resultados_exam.pivot_table(
+    index = 'periodo', columns='OBSERVACION', values = 'CODIGO DEL ESTUDIANTE', aggfunc='count'
+).fillna(0)
+
+ingresados['total_students'] = ingresados['ALCANZO VACANTE PRIMERA OPCION'] + ingresados['ALCANZO VACANTE SEGUNDA OPCION'] + ingresados['ANULADO'] + ingresados['AUSENTE'] + ingresados['NO ALCANZO VACANTE']
+
+ingresados['PORCENTAJE'] = ingresados['ALCANZO VACANTE PRIMERA OPCION'] / ingresados['total_students'] * 100
+
+st.dataframe(ingresados)
+
+fig = go.Figure()
+
+fig.add_trace(
+    go.Bar(
+        x = ingresados.index,
+        y = ingresados['total_students'],
+        name = 'TOTAL ESTUDIANTES'
+    )
+)
+fig.add_trace(
+    go.Scatter(
+        x = ingresados.index,
+        y = ingresados['ALCANZO VACANTE PRIMERA OPCION'],
+        name = 'ALCANZARON UNA VACANTE'
+    )
+)
+
+fig.add_trace(
+    go.Scatter(
+        x = ingresados.index,
+        y = ingresados['ALCANZO VACANTE SEGUNDA OPCION'],
+        name = 'ALCANZARON UNA VACANTE (SEGUNDA OPCION)'
+    )
+)
+
+fig.add_trace(
+    go.Scatter(
+        x = ingresados.index,
+        y = ingresados['NO ALCANZO VACANTE'],
+        name = 'NO ALCANZARON VACANTE'
+    )
+)
+st.plotly_chart(fig)
 
 st.subheader('¿Cuál es la distribución de puntajes entre los estudiantes de diferentes carreras?')
 st.write('Se verá si hay carreras con puntajes consistentemente más altos o más bajos.')
@@ -398,15 +443,34 @@ code_area_group['proportion'] = code_area_group['proportion'].apply(lambda x: f'
 st.dataframe(code_area_group)
 
 if not code_area_group.empty:
-      sns.barplot(data= code_area_group, x='CARRERA (PRIMERA OPCION)', y = 'TOTAL POSTULANTES')
-      sns.lineplot(data= code_area_group, x ='CARRERA (PRIMERA OPCION)', y='ALCANZO VACANTE PRIMERA OPCION', color='red', linestyle='-')
-      #plt.fill_between(code_area_group['CARRERA (PRIMERA OPCION)'], code_area_group['ALCANZO VACANTE PRIMERA OPCION'], alpha=0.3)
-      plt.title(f'CANTIDAD DE VACANTES ALCANZADAS COMO PRIMERA OPCION EN EL PERIODO {area_periodo_selectbox}')
-      plt.ylabel('CANTIDAD')
-      plt.xlabel(f'CARRERA DEL AREA {code_area_selectbox}')
-      plt.xticks(rotation = 90)
-      st.pyplot(plt)
-      plt.clf()
+
+        fig = go.Figure()
+
+        fig.add_trace(
+
+            go.Bar(
+                x = code_area_group.index,
+                y = code_area_group['TOTAL POSTULANTES'],
+                name = 'TOTAL POSTULANTES'
+            )
+        )
+
+        fig.add_trace(
+            go.Line(
+                x = code_area_group.index,
+                y = code_area_group['ALCANZO VACANTE PRIMERA OPCION'],
+                mode = 'lines+markers',
+                name = 'ALCANZO VACANTE PRIMERA OPCION'
+            )
+        )
+
+        fig.update_layout(
+            title = f'TOTAL POSTULANTES Y VACANTES ALCANZADAS EN EL AREA {code_area_selectbox} EN EL PERIODO {area_periodo_selectbox}',
+            xaxis_title = 'CARRERAS (PRIMERA OPCION)',
+            yaxis_title = 'CANTIDAD'
+        )
+
+        st.plotly_chart(fig)
 else:
       st.write('No se encontraron resultados par el area de interes')
 
@@ -415,12 +479,4 @@ else:
 # ingresados_periodo_sb = st.selectbox('selecciona un periodo: ', ingresados_periodo)
 # ingresados_periodo_sb_filtered = resultado_maximo[resultado_maximo['periodo'] == ingresados_periodo_sb]
 
-ingresados = resultados_exam.pivot_table(
-    index = 'periodo', columns='OBSERVACION', values = 'CODIGO DEL ESTUDIANTE', aggfunc='count'
-).fillna(0)
 
-ingresados['total_students'] = ingresados['ALCANZO VACANTE PRIMERA OPCION'] + ingresados['ALCANZO VACANTE SEGUNDA OPCION'] + ingresados['ANULADO'] + ingresados['AUSENTE'] + ingresados['NO ALCANZO VACANTE']
-
-ingresados['PORCENTAJE'] = ingresados['ALCANZO VACANTE PRIMERA OPCION'] / ingresados['total_students'] * 100
-
-st.dataframe(ingresados)
