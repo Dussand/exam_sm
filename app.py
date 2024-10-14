@@ -329,7 +329,7 @@ st.header('¿CUALES SON LOS PUNTAJES MINIMOS DE INGRESO DE LAS CARRERAS EN LOS E
 st.write('Si quieres saber el puntaje minimo a la carrera a la que postulas, ese mapa de calor te ayudará a saberlo.')
 
 #seleccionamremos la area de interes
-cohort_location = resultados_exam['location'].sort_values().unique()
+cohort_location = resultados_exam['location'].unique()
 cohort_location_selectbox = st.selectbox('Selecciona tu ubicacion de interes:', cohort_location)
 
 cohorte_carrera = resultados_exam[resultados_exam['location'] == cohort_location_selectbox ]['CARRERA (PRIMERA OPCION)'].unique()
