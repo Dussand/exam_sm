@@ -373,7 +373,6 @@ st.plotly_chart(fig) #mostramos el piechart
 st.header('¿QUE CARRERAS ESCOGEN COMO SEGUNDA OPCION')
 st.write('Tienes en mente asegurarte con una carrera como una segunda opcion, en caso no alcances una vacante a la carrera que estás postulando.\nRevisa aqui que carreras tienen mas acogida como segunda opcion a la carrera que escogiste como primera opcion')
 
-
 period_2_choice = resultados_exam[resultados_exam['CARRERA (SEGUNDA OPCION)'].notnull()]['periodo'].unique() #reduce el array a los valores unicos de la columna periodos (2023II, 2024I ,2024II)
 #crea el select box con los periodos unicos establecidos en la anterior linea
 periodo_second_choice = st.selectbox('Selecciona tu periodo de preferencia', period_2_choice)
@@ -430,14 +429,10 @@ filtro_carrera_cohorte = resultados_exam[
 ]
 
 if not filtro_carrera_cohorte.empty:
-      #filtro_carrera_cohorte = resultados_exam[(resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION') ]
-      cohort_students = filtro_carrera_cohorte.pivot_table(index = 'CARRERA (PRIMERA OPCION)', columns ='periodo', values ='PUNTAJE', aggfunc = 'min')
-      st.dataframe(cohort_students, width=1000)
-      sns.heatmap(cohort_students, annot=True, fmt=".2f")
-      plt.title(f'PUNTAJE MINIMO PARA INGRESAR A LA CARRERA {cohorte_carrera_sb} POR PERIODO')
-      st.pyplot(plt)
-      plt.clf()
-      
+      cohort_students_ii =filtro_carrera_cohorte.groupby('periodo')['PUNTAJE'].min().reset_index(name = cohorte_carrera_sb)
+      fig = px.line(cohort_students_ii, x = 'periodo', y = cohorte_carrera_sb)
+      st.plotly_chart(fig)
+      st.dataframe(cohort_students_ii, width=1000)
 else:
     st.write(f'No hay datos disponibles para la carrera {cohorte_carrera_sb}.')
     
@@ -567,6 +562,4 @@ fig = px.funnel(
 
 #mostramos el embudo
 st.plotly_chart(fig)
-
-st.write('POSTULA P CICLERO')
 
