@@ -13,7 +13,7 @@ st.header('ANALISIS GENERAL')
 st.write('Esta página web muestra un analisis exhaustivo de los resultados de los examenes de san marcos de los periodos 2023II, 2024I, 2024II, 2025I')
 
 # Cargar datos
-resultados_exam = pd.read_csv(r'C:\Users\Dussand\Desktop\proyectsDS\Python\Scrapping\resultados_consolidados.csv')
+resultados_exam = pd.read_csv('data_scrap\resultados_consolidados.csv')
 areas_sm = pd.read_csv('data_scrap/areas_sanmarcos')
 
 #cambiamos el nombre de las columnas a nombres mas tecnicos
@@ -232,7 +232,11 @@ max_score_periodo_sb = st.selectbox("Selecciona el periodo de interes: ", max_sc
 max_score_area = resultados_exam[resultados_exam['periodo'] == max_score_periodo_sb]['CODIGO DE AREA'].sort_values().unique()
 max_score_area_sb = st.selectbox('Selecciona el area de interes: ', max_score_area)
 
-max_score_filtered = resultados_exam[(resultados_exam['periodo'] == periodo_career_sb) & (resultados_exam['location'] == location_career_selectbox) & (resultados_exam['CODIGO DE AREA'] == max_score_area_sb)]
+max_score_filtered = resultados_exam[
+     (resultados_exam['periodo'] == periodo_career_sb) 
+     & (resultados_exam['location'] == location_career_selectbox) 
+     & (resultados_exam['CODIGO DE AREA'] == max_score_area_sb)
+]
 
 #agrupamos por carrera y mostramos el promedio
 max_score = max_score_filtered.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].max().sort_values(ascending = False).reset_index()
