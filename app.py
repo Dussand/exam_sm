@@ -70,6 +70,9 @@ resultados_exam['OBSERVACION'] = resultados_exam['OBSERVACION'].replace({
     'ALCANZO VACANTE SEGUNDA OPCIÓN':'ALCANZO VACANTE SEGUNDA OPCION'
 })
 
+#ARREGLAMOS LA CARRERA
+resultados_exam['CARRERA (PRIMERA OPCION)'].replace('CIENCIA DE LA COMPUTACION', 'CIENCIAS DE LA COMPUNTACIÓN', inplace=True)
+
 #rellenamos la columna de observacion con valores ausentes con "no alcanzó vacante"
 resultados_exam['OBSERVACION'] = resultados_exam['OBSERVACION'].fillna('NO ALCANZO VACANTE')
 
@@ -89,7 +92,6 @@ periodos = resultados_exam['periodo'].unique()
 periodo_seleccionado = st.selectbox('Selecciona un periodo', periodos)
 
 #filtramos los datos segun el periodo seleccionado
-
 periodo_filter = resultados_exam[resultados_exam['periodo'] == periodo_seleccionado]
 
 #mostramos los puntajes mas altos junto su carrera y postulante por periodo
@@ -481,4 +483,6 @@ fig = px.funnel(
 st.plotly_chart(fig)
 
 # Mostrar la etiqueta y el gráfico en Streamlit
+
+
 
