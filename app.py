@@ -97,13 +97,10 @@ periodo_filter = resultados_exam[resultados_exam['periodo'] == periodo_seleccion
 #mostramos los puntajes mas altos junto su carrera y postulante por periodo
 idx_max_PUNTAJE = periodo_filter['PUNTAJE'].idxmax()
 
-# Extraemos la fila con el puntaje más alto
-#resultado_maximo = periodo_filter.loc[[idx_max_PUNTAJE], ['APELLIDOS Y NOMBRES', 'CARRERA (PRIMERA OPCION)', 'PUNTAJE']]
-
 if idx_max_PUNTAJE in periodo_filter.index:
      resultado_maximo = periodo_filter.loc[[idx_max_PUNTAJE], ['APELLIDOS Y NOMBRES', 'CARRERA (PRIMERA OPCION)', 'PUNTAJE']]
      st.write("Postulante con el puntaje más alto:")
-     st.dataframe(resultado_maximo, hide_index=True)
+     st.dataframe(resultado_maximo, hide_index=True,  width=1000)
 else:
      print(f"Índice {idx_max_PUNTAJE} no encontrado en el DataFrame.")
 
@@ -127,12 +124,66 @@ if name_searched:
 st.header('ANALISIS DETALLADO')
 st.subheader('En esta seccion se mostrarán graficos y tablas con mas detalles de analisis por periodo y por carrera.')
 
-st.header('PORCENTAJE DE INGRESADOS POR PERIODO')
-st.write('Esta tabla muestra el porcentaje de alumnos que alcanzaro una vacante en el examen de la UNMSM.')
+
+# Contenedor para las tarjetas
+#armamos un df con el numero de postulantes por periodo y su variacion porcentual
+var_periodo = resultados_exam.groupby('periodo')['CODIGO DEL ESTUDIANTE'].count().reset_index()
+# Calcular la variación absoluta (diferencia) respecto al periodo anterior
+var_periodo['variacion_absoluta'] = var_periodo['CODIGO DEL ESTUDIANTE'].diff().fillna(0)
+# Calcular la variación porcentual respecto al periodo anterior
+var_periodo['variacion_porcentual'] = var_periodo['CODIGO DEL ESTUDIANTE'].pct_change().fillna(0) * 100
+
+
+#hacemuns pivot table con las observaciones del examen
+var_ingre = resultados_exam.pivot_table(
+     index='periodo',
+     columns='OBSERVACION',
+     values = 'CODIGO DEL ESTUDIANTE',
+     aggfunc='count'
+).reset_index()
+#eliminamos las columnas innecesarioas, solo queremos ver los ingresados en primera opcion
+var_ingre = var_ingre.drop(['ALCANZO VACANTE SEGUNDA OPCION', 'ANULADO', 'AUSENTE', 'NO ALCANZO VACANTE'], axis = 1)
+# Calcular la variación absoluta (diferencia) respecto al periodo anterior
+var_ingre['VARIACION ABSOLUTA'] = var_ingre['ALCANZO VACANTE PRIMERA OPCION'].diff().fillna(0)
+# Calcular la variación porcentual respecto al periodo anterior
+var_ingre['VARIACION PORCENTUAL'] = var_ingre['ALCANZO VACANTE PRIMERA OPCION'].pct_change().fillna(0) * 100
+
+
+#seleccionaremos el periodo
+periodo_metrics = resultados_exam['periodo'].unique()
+periodo_metrics_sb = st.selectbox('Selecciona un periodo: ', periodo_metrics)
+
+
+with st.container():
+    # Tarjetas en una fila
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        num_post = resultados_exam[resultados_exam['periodo'] == periodo_metrics_sb]['CODIGO DEL ESTUDIANTE'].count()
+        var = var_periodo[var_periodo['periodo'] == periodo_metrics_sb]['variacion_porcentual'].values[0]
+        var = f'{var:.2f}%'
+        st.metric(
+             label='Numero de postulantes', 
+             value= f'{num_post:,}',
+             delta= var
+        )
+
+    with col2:
+        num_ing = resultados_exam[(resultados_exam['periodo'] == periodo_metrics_sb) 
+                                    & (resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION')]['CODIGO DEL ESTUDIANTE'].count()
+        var_ing = var_ingre[var_ingre['periodo'] == periodo_metrics_sb]['VARIACION PORCENTUAL'].values[0]
+        var_ing = f'{var_ing:.2f}%'
+        st.metric(
+             label= 'Numero de ingresantes',
+             value= f'{num_ing: ,}',
+             delta = var_ing
+        )
+
+st.write('Porcentaje de alumnos que alcanzaron una vacante en el examen de la UNMSM de cada periodo.')
 
 ingresados = resultados_exam.pivot_table(
     index = 'periodo', columns='OBSERVACION', values = 'CODIGO DEL ESTUDIANTE', aggfunc='count'
-).fillna(0)
+).fillna(0).reset_index()
 
 ingresados['total_students'] = ingresados['ALCANZO VACANTE PRIMERA OPCION'] + ingresados['ALCANZO VACANTE SEGUNDA OPCION'] + ingresados['ANULADO'] + ingresados['AUSENTE'] + ingresados['NO ALCANZO VACANTE']
 
@@ -141,7 +192,37 @@ ingresados['PORCENTAJE'] = ingresados['ALCANZO VACANTE PRIMERA OPCION'] / ingres
 # Formatea como porcentaje después de ordenar
 ingresados['PORCENTAJE'] = ingresados['PORCENTAJE'].apply(lambda x: f'{x:.2f}%')
 
-st.dataframe(ingresados['PORCENTAJE'])
+
+c1, c2 = st.columns(2)
+
+with c1:
+     por_ing = ingresados[ingresados['periodo'] == '2023II']
+     st.metric(
+          label = '2023II',
+          value = por_ing['PORCENTAJE'].values[0]
+     )
+
+with c2:
+     por_ing = ingresados[ingresados['periodo'] == '2024I']
+     st.metric(
+          label = '2024I',
+          value = por_ing['PORCENTAJE'].values[0]
+     )
+
+c3, c4 = st.columns(2)     
+with c3:
+     por_ing = ingresados[ingresados['periodo'] == '2024II']
+     st.metric(
+          label = '2024II',
+          value = por_ing['PORCENTAJE'].values[0]
+     )
+with c4:
+     por_ing = ingresados[ingresados['periodo'] == '2025I']
+     st.metric(
+          label = '2025I',
+          value = por_ing['PORCENTAJE'].values[0]
+     )
+
 
 fig = go.Figure()
 
@@ -150,8 +231,16 @@ fig.add_trace(
         x = ingresados.index,
         y = ingresados['total_students'],
         name = 'TOTAL ESTUDIANTES'
+        
     )
 )
+
+# Agregar un título a la figura
+fig.update_layout(
+    title='TOTAL DE ESTUDIANTES QUE ALCANZARON UNA VACANTE Y NO POR PERIODO'
+)
+
+
 fig.add_trace(
     go.Scatter(
         x = ingresados.index,
@@ -254,7 +343,7 @@ promedio_puntaje = max_score['PUNTAJE'].mean()
 
 st.write(f'PUNTAJE PROMEDIO DEL AREA {max_score_area_sb} DEL PERIODO {periodo_career_sb} FUE DE: {promedio_puntaje:.2f} PTS ')
 
-st.dataframe(max_score) #mostramos el dataframe con los PUNTAJE con el puntaje maximo de las carreras
+st.dataframe(max_score, height=400, width=700) #mostramos el dataframe con los PUNTAJE con el puntaje maximo de las carreras
 
 st.header('¿ES POSIBLE INGRESAR CON 900?')
 st.write('Veremos una proporcion de estudiantes que ingresan con un puntaje igual o mayor a 900')
@@ -304,7 +393,7 @@ if not segunda_opcion.empty:
     heat_segundaopcion = segunda_opcion.pivot_table(
         index='CARRERA (SEGUNDA OPCION)', columns='CARRERA (PRIMERA OPCION)', values = 'CODIGO DEL ESTUDIANTE', aggfunc='count'
     ).reset_index().sort_values(by = segunda_choice, ascending = False)
-    heat_segundaopcion
+    st.dataframe(heat_segundaopcion, width=1500)
     # plt.figure(figsize=(10,6))
     # sns.barplot(x = 'CARRERA (SEGUNDA OPCION)', y = segunda_choice, data=heat_segundaopcion )
     # plt.xticks(rotation = 90)
@@ -343,7 +432,7 @@ filtro_carrera_cohorte = resultados_exam[
 if not filtro_carrera_cohorte.empty:
       #filtro_carrera_cohorte = resultados_exam[(resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION') ]
       cohort_students = filtro_carrera_cohorte.pivot_table(index = 'CARRERA (PRIMERA OPCION)', columns ='periodo', values ='PUNTAJE', aggfunc = 'min')
-      cohort_students
+      st.dataframe(cohort_students, width=1000)
       sns.heatmap(cohort_students, annot=True, fmt=".2f")
       plt.title(f'PUNTAJE MINIMO PARA INGRESAR A LA CARRERA {cohorte_carrera_sb} POR PERIODO')
       st.pyplot(plt)
@@ -409,7 +498,7 @@ competencia = competencia.sort_values('proportion')
 # Formatea como porcentaje después de ordenar
 competencia['proportion'] = competencia['proportion'].apply(lambda x: f'{x:.2f}%')
 
-st.dataframe(competencia, hide_index = True)
+st.dataframe(competencia, hide_index = True, width=1000)
 
 #Veremos cuantos estudiantes ingresaron por carrera y periodo
 st.header('¿QUIERES SABER EL PORCENTAJE DE INGRESADOS EN LA CARRERA QUE ELEGISTE?')
@@ -463,14 +552,28 @@ melted_df = pd.melt(funnel,
                      value_vars=['ALCANZO VACANTE PRIMERA OPCION (%)','TOTAL ESTUDIANTES (%)'],
                      var_name='ESTADO', 
                      value_name='CANTIDAD').sort_values(by = 'CANTIDAD' , ascending=False)
-
 #colocamos en porcentaje la cantidad calculada
 melted_df['CANTIDAD'] = melted_df['CANTIDAD'].apply(lambda x: f'{x:.2f}%')
-melted_df
+
+
+k1, k2 = st.columns(2)
+
+with k1:
+     st.metric(
+          label = 'Cantidad de postulantes',
+          value= f'{funnel_filteresd['CODIGO DEL ESTUDIANTE'].count()} (100%)'
+     )
+    
+with k2:
+     value_funnel = funnel_filteresd[funnel_filteresd['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION']['CODIGO DEL ESTUDIANTE'].count()
+     value_funnel_var = melted_df[melted_df['ESTADO'] == 'ALCANZO VACANTE PRIMERA OPCION (%)']['CANTIDAD'].values[0]
+     st.metric(
+          label = 'Cantidad de ingresantes',
+          value= f'{value_funnel} ({value_funnel_var})'
+     )
+     
 
 #armamos el embudo 
-
-st.markdown("### Gráfico de Funnel")
 fig = px.funnel(
       melted_df,
       x = 'ESTADO',
@@ -481,8 +584,6 @@ fig = px.funnel(
 
 #mostramos el embudo
 st.plotly_chart(fig)
-
-# Mostrar la etiqueta y el gráfico en Streamlit
 
 
 
