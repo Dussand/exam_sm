@@ -440,24 +440,7 @@ if not filtro_carrera_cohorte.empty:
       
 else:
     st.write(f'No hay datos disponibles para la carrera {cohorte_carrera_sb}.')
-
-
-# cohorte_carrera_2 = resultados_exam['CARRERA (SEGUNDA OPCION)'].dropna().unique()
-# cohorte_carrera_sb_2 = st.selectbox('Selecciona la carrera: ', cohorte_carrera_2)
-# filtro_carrera_cohorte_2= resultados_exam[(resultados_exam['CARRERA (SEGUNDA OPCION)'] == cohorte_carrera_sb_2) & (resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE SEGUNDA OPCION')]
-
-# if not filtro_carrera_cohorte_2.empty:
-#       #filtro_carrera_cohorte = resultados_exam[(resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION') ]
-#       cohort_students_2 = filtro_carrera_cohorte_2.pivot_table(index = 'CARRERA (SEGUNDA OPCION)', columns='periodo', values='PUNTAJE', aggfunc='min')
-#       cohort_students_2
-#       sns.heatmap(cohort_students_2, annot=True, fmt=".2f")
-#       plt.title(f'PUNTAJE MINIMO PARA INGRESAR A LA CARRERA {cohorte_carrera_sb_2} POR PERIODO')
-#       st.pyplot(plt)
-#       plt.clf()
-# else:
-#     st.write(f'No hay datos disponibles para la carrera {cohorte_carrera_sb_2}.')
-
-        
+    
 st.header('¿QUIERES SABER QUE AREA ES LA MAS COMPETITIVA?')
 st.write('A continuacion te mostraremos la area con mayor porcentaje de ingresados')
 
