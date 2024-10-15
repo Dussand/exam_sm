@@ -313,7 +313,7 @@ if not career_period_filtered.empty:
 else:
         st.write(f'No hay datos disponibles para la carrera {career_sb}.')
 
-st.header('¿Cuál es el maximo de puntaje por carrera de cada area?')
+st.header('¿CUAL ES EL MAXIMO PUNTAJE POR CARRERA DE CADA AREA')
 st.write('Revisaremos los puntajes maximos de cada carrera por cada area')
 
 #reducimos a valores unicos los periodos
