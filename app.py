@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+
 
 # Título de la aplicación
 st.title("ANALISIS DE RESULTADOS DEL EXAMEN DE ADMISION DE SAN MARCOS")
@@ -429,10 +432,31 @@ filtro_carrera_cohorte = resultados_exam[
 ]
 
 if not filtro_carrera_cohorte.empty:
-      cohort_students_ii =filtro_carrera_cohorte.groupby('periodo')['PUNTAJE'].min().reset_index(name = cohorte_carrera_sb)
-      fig = px.line(cohort_students_ii, x = 'periodo', y = cohorte_carrera_sb)
+      cohort_students_max =filtro_carrera_cohorte.groupby('periodo').agg({'PUNTAJE':'max'}).reset_index()
+      cohort_students_min =filtro_carrera_cohorte.groupby('periodo').agg({'PUNTAJE':'min'}).reset_index()
+      cohort_scores = cohort_students_max.merge(
+           cohort_students_min, on = 'periodo', how = 'inner'
+      )
+      fig = go.Figure()
+
+      fig.add_trace(
+           go.Line(
+                x = cohort_scores['periodo'],
+                y = cohort_scores['PUNTAJE_x'],
+                name = 'PUNTAJE MAXIMO'
+           )
+      )
+
+      fig.add_trace(
+           go.Line(
+                x = cohort_scores['periodo'],
+                y = cohort_scores['PUNTAJE_y'],
+                name = 'PUNTAJE MINIMO'
+           )
+      )
       st.plotly_chart(fig)
-      st.dataframe(cohort_students_ii, width=1000)
+
+    #   st.dataframe(cohort_scores)
 else:
     st.write(f'No hay datos disponibles para la carrera {cohorte_carrera_sb}.')
     
@@ -563,3 +587,71 @@ fig = px.funnel(
 #mostramos el embudo
 st.plotly_chart(fig)
 
+st.header('¿EXISTE UNA RELACION ENTRE LA CANTIDAD DE POSTULANTES Y EL PUNTAJE MAXIMO')
+
+
+relation_periodo = resultados_exam['periodo'].unique()
+relation_periodo_sb = st.selectbox('Selecciona un periodo: ', relation_periodo, key = 'periodo')
+
+relation_career_filtered = resultados_exam[
+     (resultados_exam['periodo'] == relation_periodo_sb)
+
+]
+
+relation = relation_career_filtered.groupby('CARRERA (PRIMERA OPCION)').agg({
+     'CODIGO DEL ESTUDIANTE':'count',
+     'PUNTAJE':'max'
+}).reset_index()
+
+
+fig = px.scatter(
+     relation,
+     x = 'CODIGO DEL ESTUDIANTE',
+     y = 'PUNTAJE',
+     trendline = 'ols'
+)
+
+st.plotly_chart(fig)
+st.write('Si, al parecer existen una tendendencia positiva que indica que mientras mas postulantes hayan en las carreras, el puntaje maximo incrementa')
+
+st.header('ANALISIS PREDICTIVO')
+
+cluster_periodo = resultados_exam['periodo'].unique()
+cluster_periodo_sb = st.selectbox('Selecciona un periodo', cluster_periodo, key = 'cluster_periodo')
+
+cluster_area = resultados_exam['CODIGO DE AREA'].unique()
+cluster_area_sb = st.selectbox('Selecciona un area',cluster_area, key = 'cluster_area')
+
+cluster_filtered = resultados_exam[
+     (resultados_exam['periodo'] == cluster_periodo_sb )
+     & (resultados_exam['CODIGO DE AREA'] == cluster_area_sb)
+]
+
+#calculamos el score promedio por carrera
+cluster_df = cluster_filtered.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].max().reset_index()
+
+#normalizamos los datos
+scaler = StandardScaler()
+scaled_feautres = scaler.fit_transform(cluster_df[['PUNTAJE']])
+
+#APLICAMOS KMeans
+kmeans = KMeans(n_clusters=2, random_state=42)  # 2 clusters: competitivas y accesibles
+cluster_df['cluster'] = kmeans.fit_predict(scaled_feautres)
+
+# Visualización en Streamlit
+fig = px.scatter(cluster_df, 
+                 x='CARRERA (PRIMERA OPCION)', 
+                 y='PUNTAJE', 
+                 color='cluster', 
+                 title='Clustering de Carreras por Puntaje Promedio',
+                 labels={'CARRERA (PRIMERA OPCION)': 'Carreras', 'PUNTAJE': 'Puntaje Promedio'},
+                 width=1200,
+                 height=800)
+
+# Actualizar el diseño de la figura para mejorar la visualización
+fig.update_traces(marker=dict(size=10))
+fig.update_layout(xaxis_tickangle=-45)
+
+# Mostrar figura en Streamlit
+st.plotly_chart(fig)
+st.write('0: Competitiva 1: Accesible')
