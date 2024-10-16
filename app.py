@@ -156,6 +156,18 @@ var_ingre['VARIACION PORCENTUAL'] = var_ingre['ALCANZO VACANTE PRIMERA OPCION'].
 periodo_metrics = resultados_exam['periodo'].unique()
 periodo_metrics_sb = st.selectbox('Selecciona un periodo: ', periodo_metrics)
 
+st.write('Porcentaje de alumnos que alcanzaron una vacante en el examen de la UNMSM de cada periodo.')
+
+ingresados = resultados_exam.pivot_table(
+    index = 'periodo', columns='OBSERVACION', values = 'CODIGO DEL ESTUDIANTE', aggfunc='count'
+).fillna(0).reset_index()
+
+ingresados['total_students'] = ingresados['ALCANZO VACANTE PRIMERA OPCION'] + ingresados['ALCANZO VACANTE SEGUNDA OPCION'] + ingresados['ANULADO'] + ingresados['AUSENTE'] + ingresados['NO ALCANZO VACANTE']
+
+ingresados['PORCENTAJE'] = ingresados['ALCANZO VACANTE PRIMERA OPCION'] / ingresados['total_students'] * 100
+
+# Formatea como porcentaje después de ordenar
+ingresados['PORCENTAJE'] = ingresados['PORCENTAJE'].apply(lambda x: f'{x:.2f}%')
 
 with st.container():
     # Tarjetas en una fila
@@ -176,56 +188,12 @@ with st.container():
                                     & (resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION')]['CODIGO DEL ESTUDIANTE'].count()
         var_ing = var_ingre[var_ingre['periodo'] == periodo_metrics_sb]['VARIACION PORCENTUAL'].values[0]
         var_ing = f'{var_ing:.2f}%'
+        por_ing = ingresados[ingresados['periodo'] == periodo_metrics_sb]
         st.metric(
              label= 'Numero de ingresantes',
-             value= f'{num_ing: ,}',
+             value= f'{num_ing: ,} ({por_ing['PORCENTAJE'].values[0]})',
              delta = var_ing
         )
-
-st.write('Porcentaje de alumnos que alcanzaron una vacante en el examen de la UNMSM de cada periodo.')
-
-ingresados = resultados_exam.pivot_table(
-    index = 'periodo', columns='OBSERVACION', values = 'CODIGO DEL ESTUDIANTE', aggfunc='count'
-).fillna(0).reset_index()
-
-ingresados['total_students'] = ingresados['ALCANZO VACANTE PRIMERA OPCION'] + ingresados['ALCANZO VACANTE SEGUNDA OPCION'] + ingresados['ANULADO'] + ingresados['AUSENTE'] + ingresados['NO ALCANZO VACANTE']
-
-ingresados['PORCENTAJE'] = ingresados['ALCANZO VACANTE PRIMERA OPCION'] / ingresados['total_students'] * 100
-
-# Formatea como porcentaje después de ordenar
-ingresados['PORCENTAJE'] = ingresados['PORCENTAJE'].apply(lambda x: f'{x:.2f}%')
-
-
-c1, c2 = st.columns(2)
-
-with c1:
-     por_ing = ingresados[ingresados['periodo'] == '2023II']
-     st.metric(
-          label = '2023II',
-          value = por_ing['PORCENTAJE'].values[0]
-     )
-
-with c2:
-     por_ing = ingresados[ingresados['periodo'] == '2024I']
-     st.metric(
-          label = '2024I',
-          value = por_ing['PORCENTAJE'].values[0]
-     )
-
-c3, c4 = st.columns(2)     
-with c3:
-     por_ing = ingresados[ingresados['periodo'] == '2024II']
-     st.metric(
-          label = '2024II',
-          value = por_ing['PORCENTAJE'].values[0]
-     )
-with c4:
-     por_ing = ingresados[ingresados['periodo'] == '2025I']
-     st.metric(
-          label = '2025I',
-          value = por_ing['PORCENTAJE'].values[0]
-     )
-
 
 fig = go.Figure()
 
@@ -269,14 +237,14 @@ fig.add_trace(
 )
 st.plotly_chart(fig)
 
-st.subheader('¿Cuál es la distribución de puntajes entre los estudiantes de diferentes carreras?')
+st.subheader('DISTRIBUCION DE PUNTAJES ENTRE LOS ESTUDIANTES DE CADA CARRERA')
 st.write('Se verá si hay carreras con puntajes consistentemente más altos o más bajos.')
 
 
 #periodos unicos en el df
 periodo_career = resultados_exam['periodo'].unique()
 #mostramos una lista desplegable con los periodos a escoger
-periodo_career_sb = st.selectbox('Selecciona un periodo a analizar', periodo_career)
+periodo_career_sb = st.selectbox('Selecciona un periodo a analizar: ', periodo_career)
 
 #seleccionamos la ubicacion de la carrera
 location_career = resultados_exam['location'].unique()
@@ -286,7 +254,7 @@ location_career_selectbox = st.selectbox('Selecciona la ubicacion de tu carrera:
 #carreras unicas en el df
 filtered_careers = resultados_exam[resultados_exam['location'] == location_career_selectbox]['CARRERA (PRIMERA OPCION)'].unique()
 #mostramos una lista desplegable con los periodos a escoger
-career_sb = st.selectbox('Selecciona una carrera a analizar', filtered_careers)
+career_sb = st.selectbox('Selecciona una carrera a analizar: ', filtered_careers)
 #filtramos los datos con el periodo seleccionado
 career_period_filtered = resultados_exam[(resultados_exam['location'] == location_career_selectbox) & (resultados_exam['CARRERA (PRIMERA OPCION)'] == career_sb) & (resultados_exam['periodo'] == periodo_career_sb)]
 career_period_filtered[career_period_filtered['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION'] 
@@ -416,8 +384,8 @@ if not segunda_opcion.empty:
 else:
     st.write(f'No se encontraron datos para la carrera de {segunda_choice}')
 
-st.header('¿CUALES SON LOS PUNTAJES MINIMOS DE INGRESO DE LAS CARRERAS EN LOS EXAMENES?')
-st.write('Si quieres saber el puntaje minimo a la carrera a la que postulas, ese mapa de calor te ayudará a saberlo.')
+st.header('VARIACION DE LOS PUNTAJES MAXIMOS Y MINIMOS DE CADA CARRERA EN EL TIEMPO')
+st.write('Este grafico de lineas muestra como ha cambiado los puntajes minimos de ingreso y maximos para cada examen.')
 
 #seleccionamremos la area de interes
 cohort_location = resultados_exam['location'].unique()
@@ -460,7 +428,7 @@ if not filtro_carrera_cohorte.empty:
 else:
     st.write(f'No hay datos disponibles para la carrera {cohorte_carrera_sb}.')
     
-st.header('¿QUIERES SABER QUE AREA ES LA MAS COMPETITIVA?')
+st.header('COMPETITIVIDAD POR AREA')
 st.write('A continuacion te mostraremos la area con mayor porcentaje de ingresados')
 
 #filtramos los valores unicos de los periodos
@@ -495,8 +463,7 @@ competencia['proportion'] = ((
 ) / competencia['TOTAL POSTULANTES'] * 100)
 
 # Ordena los valores numéricos
-competencia = competencia.sort_values('proportion')
-
+competencia = competencia.sort_values('proportion').reset_index()
 # Formatea como porcentaje después de ordenar
 competencia['proportion'] = competencia['proportion'].apply(lambda x: f'{x:.2f}%')
 
@@ -616,42 +583,59 @@ st.write('Si, al parecer existen una tendendencia positiva que indica que mientr
 
 st.header('ANALISIS PREDICTIVO')
 
-cluster_periodo = resultados_exam['periodo'].unique()
-cluster_periodo_sb = st.selectbox('Selecciona un periodo', cluster_periodo, key = 'cluster_periodo')
+student_count = resultados_exam.pivot_table(
+    index='CARRERA (PRIMERA OPCION)',
+    columns='periodo',
+    values='CODIGO DEL ESTUDIANTE',
+    aggfunc='count'
+).fillna(0).reset_index()
 
-cluster_area = resultados_exam['CODIGO DE AREA'].unique()
-cluster_area_sb = st.selectbox('Selecciona un area',cluster_area, key = 'cluster_area')
+score_mean = resultados_exam.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].mean()
 
-cluster_filtered = resultados_exam[
-     (resultados_exam['periodo'] == cluster_periodo_sb )
-     & (resultados_exam['CODIGO DE AREA'] == cluster_area_sb)
-]
+score_max = resultados_exam.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].max()
 
-#calculamos el score promedio por carrera
-cluster_df = cluster_filtered.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].max().reset_index()
+score_min = resultados_exam.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].min()
 
-#normalizamos los datos
+num_merge = student_count.merge(
+    score_mean,
+    on = 'CARRERA (PRIMERA OPCION)',
+    how = 'inner'
+
+)
+
+num_ = num_merge.merge(
+    score_max,
+    on = 'CARRERA (PRIMERA OPCION)',
+    how = 'inner'
+)
+
+num_df_1 = num_.merge(
+    score_min,
+    on = 'CARRERA (PRIMERA OPCION)',
+    how = 'inner'
+)
+
+columns = {
+     'PUNTAJE_x':'PUNTAJE_MEDIO',
+     'PUNTAJE_y':'PUNTAJE_MAXIMO',
+     'PUNTAJE':'PUNTAJE_MINIMO'
+}
+
+num_df_2 = num_df_1.rename(columns=columns)
+num_df_2
+# #seleccionamos la caaracteristicas que usaremos par el clustering
+
+features = num_df_2.drop(['CARRERA (PRIMERA OPCION)'], axis=1)
+
+#normalizamos las caracteristicas
 scaler = StandardScaler()
-scaled_feautres = scaler.fit_transform(cluster_df[['PUNTAJE']])
+X_scaled = scaler.fit_transform(features)
 
-#APLICAMOS KMeans
-kmeans = KMeans(n_clusters=2, random_state=42)  # 2 clusters: competitivas y accesibles
-cluster_df['cluster'] = kmeans.fit_predict(scaled_feautres)
+#aplicamos kmenas con 2 clusteres
+kmeans = KMeans(n_clusters=2, random_state=42)
+num_df_2['cluster'] = kmeans.fit_predict(X_scaled)
 
-# Visualización en Streamlit
-fig = px.scatter(cluster_df, 
-                 x='CARRERA (PRIMERA OPCION)', 
-                 y='PUNTAJE', 
-                 color='cluster', 
-                 title='Clustering de Carreras por Puntaje Promedio',
-                 labels={'CARRERA (PRIMERA OPCION)': 'Carreras', 'PUNTAJE': 'Puntaje Promedio'},
-                 width=1200,
-                 height=800)
+cluster_labels = {0: 'Accesible', 1: 'Competitiva'}
+num_df_2['category'] = num_df_2['cluster'].map(cluster_labels)
 
-# Actualizar el diseño de la figura para mejorar la visualización
-fig.update_traces(marker=dict(size=10))
-fig.update_layout(xaxis_tickangle=-45)
-
-# Mostrar figura en Streamlit
-st.plotly_chart(fig)
-st.write('0: Competitiva 1: Accesible')
+num_df_2
