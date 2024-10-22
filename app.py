@@ -590,13 +590,27 @@ student_count = resultados_exam.pivot_table(
     aggfunc='count'
 ).fillna(0).reset_index()
 
+
+ingresados_count = resultados_exam[resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION'].pivot_table(
+    index='CARRERA (PRIMERA OPCION)',
+    columns='periodo',
+    values='CODIGO DEL ESTUDIANTE',
+    aggfunc='count'
+).fillna(0).reset_index()
+
 score_mean = resultados_exam.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].mean()
 
 score_max = resultados_exam.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].max()
 
-score_min = resultados_exam.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].min()
+score_min = resultados_exam[resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION'].groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].min()
 
-num_merge = student_count.merge(
+df_numeric = student_count.merge(
+    ingresados_count,
+    on = 'CARRERA (PRIMERA OPCION)',
+    how = 'inner'
+)
+
+num_merge = df_numeric.merge(
     score_mean,
     on = 'CARRERA (PRIMERA OPCION)',
     how = 'inner'
@@ -615,27 +629,85 @@ num_df_1 = num_.merge(
     how = 'inner'
 )
 
+
 columns = {
      'PUNTAJE_x':'PUNTAJE_MEDIO',
      'PUNTAJE_y':'PUNTAJE_MAXIMO',
-     'PUNTAJE':'PUNTAJE_MINIMO'
+     'PUNTAJE':'PUNTAJE_MINIMO',
+     '2023II_x':'post_2023II',
+     '2024I_x':'post_2024I',
+     '2024II_x':'post_2024II',
+     '2025I_x':'post_2025I',
+     '2023II_y':'ing_2023II',
+     '2024I_y':'ing_2024I',
+     '2024II_y':'ing_2024II',
+     '2025I_y':'ing_2025I'
 }
 
 num_df_2 = num_df_1.rename(columns=columns)
-num_df_2
-# #seleccionamos la caaracteristicas que usaremos par el clustering
 
-features = num_df_2.drop(['CARRERA (PRIMERA OPCION)'], axis=1)
+X = num_df_2[['post_2023II', 'post_2024I', 'post_2024II','post_2025I', 'ing_2023II', 'ing_2024I', 'ing_2024II' , 'ing_2025I', 'PUNTAJE_MEDIO', 'PUNTAJE_MAXIMO', 'PUNTAJE_MINIMO']] 
+kmeans = KMeans(n_clusters=2)
 
-#normalizamos las caracteristicas
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(features)
-
-#aplicamos kmenas con 2 clusteres
-kmeans = KMeans(n_clusters=2, random_state=42)
-num_df_2['cluster'] = kmeans.fit_predict(X_scaled)
-
-cluster_labels = {0: 'Accesible', 1: 'Competitiva'}
-num_df_2['category'] = num_df_2['cluster'].map(cluster_labels)
+num_df_2['CLUSTER'] = kmeans.fit_predict(X)
 
 num_df_2
+
+
+fig = go.Figure(
+     layout=go.Layout(
+          xaxis_title='Cluster'
+     )
+)
+
+fig.add_trace(go.Violin(
+ 
+    x=num_df_2['CLUSTER'],
+    y=num_df_2['PUNTAJE_MEDIO'], 
+    box=dict(visible = True), 
+    points='all',
+    name = 'Puntaje promedio'
+
+)
+)
+
+fig.add_trace(go.Violin(
+ 
+    x=num_df_2['CLUSTER'],
+    y=num_df_2['PUNTAJE_MAXIMO'], 
+    box=dict(visible = True), 
+    points='all',
+    name = 'Puntaje maximo'
+
+)
+)
+
+
+fig.add_trace(go.Violin(
+ 
+    x=num_df_2['CLUSTER'],
+    y=num_df_2['PUNTAJE_MINIMO'], 
+    box=dict(visible = True), 
+    points='all',
+    name = 'Puntaje minimo'
+
+)
+)
+
+st.plotly_chart(fig)
+
+a1, a2 = st.columns(2)
+with a1:
+     cluster_0 = st.button('CARRERAS CLUSTER 0 (MAS COMPETITIVA)')
+
+if cluster_0:
+        filtered_cluster_0 = num_df_2[num_df_2['CLUSTER'] == 0]
+        st.dataframe(filtered_cluster_0)
+
+
+with a2:
+     cluster_1 = st.button('CARRERAS CLUSTER 1 (MAS ACCESIBLE)')
+
+if cluster_1:
+        filtered_cluster_1 = num_df_2[num_df_2['CLUSTER'] == 1]
+        st.dataframe(filtered_cluster_1)
