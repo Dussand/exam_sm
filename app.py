@@ -711,3 +711,7 @@ with a2:
 if cluster_1:
         filtered_cluster_1 = num_df_2[num_df_2['CLUSTER'] == 1]
         st.dataframe(filtered_cluster_1)
+
+
+
+
