@@ -580,141 +580,119 @@ fig = px.scatter(
 st.plotly_chart(fig)
 st.write('Si, al parecer existen una tendendencia positiva que indica que mientras mas postulantes hayan en las carreras, el puntaje maximo incrementa')
 
-# st.header('ANALISIS PREDICTIVO')
+st.header('ANALISIS PREDICTIVO')
 
-# student_count = resultados_exam.pivot_table(
-#     index='CARRERA (PRIMERA OPCION)',
-#     columns='periodo',
-#     values='CODIGO DEL ESTUDIANTE',
-#     aggfunc='count'
-# ).fillna(0).reset_index()
+ingresados_count = resultados_exam[resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION'].pivot_table(
+    index='CARRERA (PRIMERA OPCION)',
+    columns='periodo',
+    values='CODIGO DEL ESTUDIANTE',
+    aggfunc='count'
+).fillna(0).reset_index()
 
+student_count = resultados_exam.pivot_table(
+    index='CARRERA (PRIMERA OPCION)',
+    columns='periodo',
+    values='CODIGO DEL ESTUDIANTE',
+    aggfunc='count'
+).fillna(0).reset_index()
 
-# ingresados_count = resultados_exam[resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION'].pivot_table(
-#     index='CARRERA (PRIMERA OPCION)',
-#     columns='periodo',
-#     values='CODIGO DEL ESTUDIANTE',
-#     aggfunc='count'
-# ).fillna(0).reset_index()
+columns = {
+    '2023II':'post_2023II',
+    '2024I':'post_2024I',
+    '2024II':'post_2024II',
+    '2025I':'post_2025I',
 
-# score_mean = resultados_exam.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].mean()
+}
 
-# score_max = resultados_exam.groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].max()
-
-# score_min = resultados_exam[resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION'].groupby('CARRERA (PRIMERA OPCION)')['PUNTAJE'].min()
-
-# df_numeric = student_count.merge(
-#     ingresados_count,
-#     on = 'CARRERA (PRIMERA OPCION)',
-#     how = 'inner'
-# )
-
-# num_merge = df_numeric.merge(
-#     score_mean,
-#     on = 'CARRERA (PRIMERA OPCION)',
-#     how = 'inner'
-
-# )
-
-# num_ = num_merge.merge(
-#     score_max,
-#     on = 'CARRERA (PRIMERA OPCION)',
-#     how = 'inner'
-# )
-
-# num_df_1 = num_.merge(
-#     score_min,
-#     on = 'CARRERA (PRIMERA OPCION)',
-#     how = 'inner'
-# )
+student_count.rename(columns=columns, inplace=True)
 
 
-# columns = {
-#      'PUNTAJE_x':'PUNTAJE_MEDIO',
-#      'PUNTAJE_y':'PUNTAJE_MAXIMO',
-#      'PUNTAJE':'PUNTAJE_MINIMO',
-#      '2023II_x':'post_2023II',
-#      '2024I_x':'post_2024I',
-#      '2024II_x':'post_2024II',
-#      '2025I_x':'post_2025I',
-#      '2023II_y':'ing_2023II',
-#      '2024I_y':'ing_2024I',
-#      '2024II_y':'ing_2024II',
-#      '2025I_y':'ing_2025I'
-# }
-
-# num_df_2 = num_df_1.rename(columns=columns)
-
-# X = num_df_2[['post_2023II', 'post_2024I', 'post_2024II','post_2025I', 'ing_2023II', 'ing_2024I', 'ing_2024II' , 'ing_2025I', 'PUNTAJE_MEDIO', 'PUNTAJE_MAXIMO', 'PUNTAJE_MINIMO']] 
-
-# scaler = StandardScaler()
-# data_scaled = scaler.fit_transform(X)
-
-# kmeans = KMeans(n_clusters=3)
-
-# num_df_2['CLUSTER'] = kmeans.fit_predict(X)
-
-# num_df_2
+df_numeric = student_count.merge(
+    ingresados_count,
+    on = 'CARRERA (PRIMERA OPCION)',
+    how = 'inner'
+)
 
 
-# fig = go.Figure(
-#      layout=go.Layout(
-#           xaxis_title='Cluster'
-#      )
-# )
+columns = {
+    '2023II':'ing_2023II',
+    '2024I':'ing_2024I',
+    '2024II':'ing_2024II',
+    '2025I':'ing_2025I',
 
-# fig.add_trace(go.Violin(
- 
-#     x=num_df_2['CLUSTER'],
-#     y=num_df_2['PUNTAJE_MEDIO'], 
-#     box=dict(visible = True), 
-#     points='all',
-#     name = 'Puntaje promedio'
+}
 
-# )
-# )
+df_numeric.rename(columns=columns, inplace=True)
 
-# fig.add_trace(go.Violin(
- 
-#     x=num_df_2['CLUSTER'],
-#     y=num_df_2['PUNTAJE_MAXIMO'], 
-#     box=dict(visible = True), 
-#     points='all',
-#     name = 'Puntaje maximo'
+score_mean = resultados_exam.pivot_table(
+    index='CARRERA (PRIMERA OPCION)',
+    columns='periodo',
+    values='PUNTAJE',
+    aggfunc='mean'
+).fillna(0).reset_index()
 
-# )
-# )
+columns = {
+    '2023II':'PROM_2023II',
+    '2024I':'PROM_2024I',
+    '2024II':'PROM_2024II',
+    '2025I':'PROM_2025I',
 
+}
 
-# fig.add_trace(go.Violin(
- 
-#     x=num_df_2['CLUSTER'],
-#     y=num_df_2['PUNTAJE_MINIMO'], 
-#     box=dict(visible = True), 
-#     points='all',
-#     name = 'Puntaje minimo'
+score_mean.rename(columns=columns, inplace=True)
 
-# )
-# )
+score_max = resultados_exam.pivot_table(
+    index='CARRERA (PRIMERA OPCION)',
+    columns='periodo',
+    values='PUNTAJE',
+    aggfunc='max'
+).fillna(0).reset_index()
 
-# st.plotly_chart(fig)
+columns = {
+    '2023II':'MAX_2023II',
+    '2024I':'MAX_2024I',
+    '2024II':'MAX_2024II',
+    '2025I':'MAX_2025I',
 
-# a1, a2 = st.columns(2)
-# with a1:
-#      cluster_0 = st.button('CARRERAS CLUSTER 0 (MAS COMPETITIVA)')
+}
 
-# if cluster_0:
-#         filtered_cluster_0 = num_df_2[num_df_2['CLUSTER'] == 0]
-#         st.dataframe(filtered_cluster_0)
+score_max.rename(columns=columns, inplace=True)
 
+score_min = resultados_exam[resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION'].pivot_table(
+    index='CARRERA (PRIMERA OPCION)',
+    columns='periodo',
+    values='PUNTAJE',
+    aggfunc='min'
+).fillna(0).reset_index()
 
-# with a2:
-#      cluster_1 = st.button('CARRERAS CLUSTER 1 (MAS ACCESIBLE)')
+columns = {
+    '2023II':'MIN_2023II',
+    '2024I':'MIN_2024I',
+    '2024II':'MIN_2024II',
+    '2025I':'MIN_2025I',
 
-# if cluster_1:
-#         filtered_cluster_1 = num_df_2[num_df_2['CLUSTER'] == 1]
-#         st.dataframe(filtered_cluster_1)
+}
 
+score_min.rename(columns=columns, inplace=True)
 
+num_merge = df_numeric.merge(
+    score_mean,
+    on = 'CARRERA (PRIMERA OPCION)',
+    how = 'inner'
 
+)
+
+num_ = num_merge.merge(
+    score_max,
+    on = 'CARRERA (PRIMERA OPCION)',
+    how = 'inner'
+)
+
+num_df = num_.merge(
+    score_min,
+    on = 'CARRERA (PRIMERA OPCION)',
+    how = 'inner'
+)
+
+num_df
 
