@@ -4,6 +4,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
 
 
 
@@ -580,7 +586,8 @@ fig = px.scatter(
 st.plotly_chart(fig)
 st.write('Si, al parecer existen una tendendencia positiva que indica que mientras mas postulantes hayan en las carreras, el puntaje maximo incrementa')
 
-st.header('ANALISIS PREDICTIVO')
+st.title('CLASIFICACION DE CARRERAS')
+st.write('En esta seccion veremos una clasificacion de carreras por demanda y puntaje')
 
 ingresados_count = resultados_exam[resultados_exam['OBSERVACION'] == 'ALCANZO VACANTE PRIMERA OPCION'].pivot_table(
     index='CARRERA (PRIMERA OPCION)',
@@ -589,12 +596,14 @@ ingresados_count = resultados_exam[resultados_exam['OBSERVACION'] == 'ALCANZO VA
     aggfunc='count'
 ).fillna(0).reset_index()
 
+
 student_count = resultados_exam.pivot_table(
     index='CARRERA (PRIMERA OPCION)',
     columns='periodo',
     values='CODIGO DEL ESTUDIANTE',
     aggfunc='count'
 ).fillna(0).reset_index()
+
 
 columns = {
     '2023II':'post_2023II',
@@ -613,7 +622,6 @@ df_numeric = student_count.merge(
     how = 'inner'
 )
 
-
 columns = {
     '2023II':'ing_2023II',
     '2024I':'ing_2024I',
@@ -623,23 +631,6 @@ columns = {
 }
 
 df_numeric.rename(columns=columns, inplace=True)
-
-score_mean = resultados_exam.pivot_table(
-    index='CARRERA (PRIMERA OPCION)',
-    columns='periodo',
-    values='PUNTAJE',
-    aggfunc='mean'
-).fillna(0).reset_index()
-
-columns = {
-    '2023II':'PROM_2023II',
-    '2024I':'PROM_2024I',
-    '2024II':'PROM_2024II',
-    '2025I':'PROM_2025I',
-
-}
-
-score_mean.rename(columns=columns, inplace=True)
 
 score_max = resultados_exam.pivot_table(
     index='CARRERA (PRIMERA OPCION)',
@@ -676,7 +667,7 @@ columns = {
 score_min.rename(columns=columns, inplace=True)
 
 num_merge = df_numeric.merge(
-    score_mean,
+    score_min,
     on = 'CARRERA (PRIMERA OPCION)',
     how = 'inner'
 
@@ -688,11 +679,75 @@ num_ = num_merge.merge(
     how = 'inner'
 )
 
-num_df = num_.merge(
-    score_min,
-    on = 'CARRERA (PRIMERA OPCION)',
-    how = 'inner'
+df_sc = num_.iloc[:, 1:] #separamos las carreras del df para obtener los valores numericos
+
+scaled = StandardScaler() #estandarizamos las columnas con valores numericos
+df_scaled = scaled.fit_transform(df_sc)
+
+df_scaled = pd.DataFrame(df_scaled, columns=df_sc.columns) #lo convertimos en un df
+
+wcss = [] 
+for i in range(1, 11):  # Intentar con 1 a 10 clusters
+    kmeans = KMeans(n_clusters=i)
+    kmeans.fit(df_scaled)
+    wcss.append(kmeans.inertia_)
+
+
+fig = px.line(
+    wcss,
+    x= range(1, 11),
+    y = wcss,
+    title = 'Metodo del codo',
+    markers= True,
+    labels = {'Clusters':'numero de clusters', 'WCSS':'WCSS'}
 )
 
-num_df
+# Definir el número de clusters
+k = 4 # Por ejemplo, si deseas 3 clusters
+kmeans = KMeans(n_clusters=k, random_state=42)
+kmeans.fit(df_scaled)  # Entrenar el modelo con los datos escalados
+
+# Obtener las etiquetas de los clusters
+labels = kmeans.labels_
+
+
+num_['cluster'] = kmeans.fit_predict(df_scaled)  
+
+
+s1, s2, s3, s4 = st.columns(4)
+
+with s1:
+     career_acc = st.button('Carreras con baja demanda y baja competencia')
+
+if career_acc:
+    cluster_0 = num_[num_['cluster'] == 0]['CARRERA (PRIMERA OPCION)']
+
+    unique_career = cluster_0.unique()
+    unique_career_sb = st.selectbox('SELECCIONA LA CARRERA: ', unique_career)
+
+with s2:
+     career_acc_1 = st.button('Carreras con alta demanda y alta competencia')
+
+if career_acc_1:
+    cluster_1 = num_[num_['cluster'] == 1]['CARRERA (PRIMERA OPCION)']
+
+    unique_career_1 = cluster_1.unique()
+    unique_career_sb_1 = st.selectbox('SELECCIONA LA CARRERA: ', unique_career_1)
+
+with s3:
+     career_acc_2 = st.button('Carreras con demanda moderada y competencia variable')
+
+if career_acc_2:
+    cluster_2 = num_[num_['cluster'] == 2]['CARRERA (PRIMERA OPCION)']
+
+    unique_career_2 = cluster_2.unique()
+    unique_career_sb_2 = st.selectbox('SELECCIONA LA CARRERA: ', unique_career_2)
+
+with s4:
+     career_acc_3 = st.button('Carreras con alta demanda, alta competencia')
+
+if career_acc_3:
+    cluster_3 = num_[num_['cluster'] == 3]['CARRERA (PRIMERA OPCION)']
+    unique_career_3 = cluster_3.unique()
+    unique_career_sb_3 = st.selectbox('SELECCIONA LA CARRERA: ', unique_career_3)
 
