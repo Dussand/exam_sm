@@ -257,7 +257,7 @@ with st.container():
     with k1:
         max_score = max[max['periodo'] == periodo_metrics_sb]['PUNTAJE'].values[0]
         max_var = max[max['periodo'] == periodo_metrics_sb]['variacion (%)'].values[0]
-        var = f'{max_var:.2f}%'
+        var = f'{max_var:.2f}% (resp. al año anterior)'
         st.metric(
              label=f'Puntaje maximo del periodo {periodo_metrics_sb}', 
              value= f'{max_score:,}',
@@ -271,7 +271,7 @@ with st.container():
     with k2:
         min_score = min[min['periodo'] == periodo_metrics_sb]['PUNTAJE'].values[0]
         min_var = min[min['periodo'] == periodo_metrics_sb]['variacion (%)'].values[0]
-        var = f'{min_var:.2f}%'
+        var = f'{min_var:.2f}% (resp. al año anterior)'
         st.metric(
              label=f'Puntaje minimo del periodo {periodo_metrics_sb}', 
              value= f'{min_score:,}',
@@ -284,7 +284,7 @@ with st.container():
     with k3:
         mean_score = mean[mean['periodo'] == periodo_metrics_sb]['PUNTAJE'].values[0]
         mean_var = mean[mean['periodo'] == periodo_metrics_sb]['variacion (%)'].values[0]
-        var = f'{mean_var:.2f}%'
+        var = f'{mean_var:.2f}% (resp. al año anterior)'
         st.metric(
              label=f'Puntaje meanimo del periodo {periodo_metrics_sb}', 
              value= f'{mean_score:,}',
@@ -307,8 +307,6 @@ if button_max:
             labels={'PUNTAJE': 'Puntaje', 'periodo': 'Periodo'},
             color = 'PUNTAJE',
             color_continuous_scale= 'Cividis'
-
-            
         )
         
         # Mejorar la visualización
@@ -339,8 +337,6 @@ if button_min:
             labels={'PUNTAJE': 'Puntaje', 'periodo': 'Periodo'},
             color = 'PUNTAJE',
             color_continuous_scale= 'Cividis'
-
-            
         )
         
         # Mejorar la visualización
@@ -371,9 +367,7 @@ if button_mean:
             title='Puntaje por Periodo', 
             labels={'PUNTAJE': 'Puntaje', 'periodo': 'Periodo'},
             color = 'PUNTAJE',
-            color_continuous_scale= 'Cividis'
-
-            
+            color_continuous_scale= 'Cividis'            
         )
         
         # Mejorar la visualización
@@ -390,3 +384,100 @@ if button_mean:
         st.plotly_chart(fig, use_container_width=True)
     else:
         st.error("El DataFrame 'mean' no es válido o no contiene las columnas requeridas.")
+
+st.markdown(
+    "<h1 style='text-align: center; font-family: Arial, sans-serif; font-size: 24px;'>Complejidad de ingreso por área</h1>",
+    unsafe_allow_html=True
+)
+
+# #filtramos los valores de los periodos
+# areas_periodo = resultados_exam['periodo'].unique()
+# areas_periodo_sb = st.selectbox('Escoge un periodo', areas_periodo)
+# areas_periodo_filtered = resultados_exam[resultados_exam['periodo'] == areas_periodo_sb]
+
+competencia_areas = resultados_exam.pivot_table(
+    index = ['periodo', 'CODIGO DE AREA'], columns = 'OBSERVACION', values='CODIGO DEL ESTUDIANTE', aggfunc= 'count'
+).fillna(0).reset_index()
+
+#ccreamos una fila con el total de postulanes sumando todas las observaciones
+competencia_areas['TOTAL POSTULANTES'] = (
+      competencia_areas.get('ALCANZO VACANTE PRIMERA OPCION', 0) 
+      + competencia_areas.get('ALCANZO VACANTE SEGUNDA OPCION', 0)
+      + competencia_areas.get('ANULADO', 0)
+      + competencia_areas.get('AUSENTE', 0)
+      + competencia_areas.get('NO ALCANZO VACANTE', 0)
+)
+
+#borramos las columnas que no nos sirve porque solo queremos ver los que ingresaron con primera opcion
+competencia_areas = competencia_areas[
+    ['periodo', 'CODIGO DE AREA','ALCANZO VACANTE PRIMERA OPCION', 'TOTAL POSTULANTES']
+].dropna(axis = 1, how = 'all')
+
+competencia_areas['proportion'] = ((
+      competencia_areas['ALCANZO VACANTE PRIMERA OPCION']
+
+) / competencia_areas['TOTAL POSTULANTES'])
+
+# # Ordena los valores numéricos
+competencia_areas = competencia_areas.sort_values('proportion').reset_index()
+
+competencia_mean = competencia_areas.groupby(['CODIGO DE AREA'])['proportion'].mean().reset_index()
+
+ponderado_mean = competencia_areas.groupby('CODIGO DE AREA').agg(
+    {
+        'TOTAL POSTULANTES':'sum',
+        'ALCANZO VACANTE PRIMERA OPCION': 'sum'
+    }
+).reset_index()
+
+ponderado_mean['ponderado'] = ponderado_mean ['ALCANZO VACANTE PRIMERA OPCION'] / ponderado_mean ['TOTAL POSTULANTES']
+
+# Crear la gráfica con Plotly Express
+fig = px.scatter(
+    ponderado_mean, 
+    x="ponderado", 
+    y = 'TOTAL POSTULANTES',
+    color="CODIGO DE AREA", 
+    title=f"Areas mas complejas para alcanzar una vacante",
+    labels={
+        "periodo": "Periodo",
+        "ALCANZO VACANTE PRIMERA OPCION": "Cantidad de ingresantes",
+        "CODIGO DE AREA": "Área"
+    }
+)
+
+# fig.update_traces(mode="lines+markers", line_shape="spline")  # Suavizar líneas y mantener marcadores
+
+# Configurar el rango del eje X
+# Expandir límites automáticamente y agregar margen
+fig.update_xaxes(
+    range=None,  # Habilitar rango dinámico
+    autorange=True,  # Expandir los límites automáticamente
+    title=dict(text="Proporción")  # Etiqueta personalizada
+)
+
+
+# Mostrar la gráfica en Streamlit
+st.plotly_chart(fig)
+
+with st.container():
+    # Tarjetas en una fila
+    a1, a2, a3 = st.columns(3)
+
+    with a1:
+        st.subheader('Áreas más competitivas')
+        st.write('Área A y Área C son las más competitivas:')
+        st.write('Área A tiene el mayor número de postulantes (36,292), pero la proporción más baja (0.0464). Esto indica que, aunque hay muchos interesados, pocos logran obtener una vacante en su primera opción.')
+        st.write('Área C también tiene una proporción baja (0.0819), aunque con menos postulantes en comparación con el área A (36,292 postulantes).')
+
+    with a2:
+        st.subheader('Áreas intermedias competitivas')
+        st.write('Área E y Área D son medianamente competitivas:')
+        st.write('Área E y Área D presentan proporciones más altas (0.1269 y 0.1637, respectivamente). Esto sugiere que aunque siguen siendo competitivas, ofrecen mayores probabilidades de éxito en comparación con A y C.')
+        st.write('Área D tiene una ventaja adicional al tener menos postulantes (17,858), lo que puede significar una menor competencia en términos absolutos.')
+
+    with a3:
+        st.subheader('Área menos competitiva')
+        st.write('Area B la area menos competitiva:')
+        st.write('Área B tiene el menor número de postulantes (3,050) y la proporción más alta (0.2866). Esto indica que los postulantes en esta área tienen una mayor probabilidad de obtener una vacante en su primera opción.')
+        
