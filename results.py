@@ -64,8 +64,6 @@ resultados_exam['OBSERVACION'] = resultados_exam['OBSERVACION'].replace({
     'ALCANZO VACANTE SEGUNDA OPCIÓN':'ALCANZO VACANTE SEGUNDA OPCION'
 })
 
-#ARREGLAMOS LA CARRERA
-resultados_exam['CARRERA (PRIMERA OPCION)'].replace('CIENCIA DE LA COMPUTACION', 'CIENCIAS DE LA COMPUNTACIÓN', inplace=True)
 
 #rellenamos la columna de observacion con valores ausentes con "no alcanzó vacante"
 resultados_exam['OBSERVACION'] = resultados_exam['OBSERVACION'].fillna('NO ALCANZO VACANTE')
@@ -76,6 +74,12 @@ resultados_exam['location_2'] = resultados_exam['location_2'].fillna('LIMA')
 
 #analizamos los tipos de datos y corregimos en base a las necesidades para el analisis
 resultados_exam['CODIGO DEL ESTUDIANTE'] = resultados_exam['CODIGO DEL ESTUDIANTE'].astype(object)
+
+# Reemplazar los valores específicos en la columna 'carrera'
+resultados_exam['CARRERA (PRIMERA OPCION)'] = resultados_exam['CARRERA (PRIMERA OPCION)'].replace({
+    'CIENCIA DE LA COMPUTACIÓN': 'CIENCIAS DE LA COMPUTACION',
+    'CIENCIAS DE LA COMPUTACIÓN': 'CIENCIAS DE LA COMPUTACION'
+})
 
 #cruzamos los dataframes para que cada carrera tenga su area
 resultados_exam = resultados_exam.merge(areas_sm, on = 'CARRERA (PRIMERA OPCION)', how = 'left')
@@ -303,14 +307,14 @@ if button_max:
             max, 
             x='periodo', 
             y='PUNTAJE', 
-            title='Puntaje por Periodo', 
+            title='Puntaje Maximo de cada periodo', 
             labels={'PUNTAJE': 'Puntaje', 'periodo': 'Periodo'},
             color = 'PUNTAJE',
-            color_continuous_scale= 'Cividis'
+            color_continuous_scale="Reds"
         )
         
         # Mejorar la visualización
-        fig.update_traces(texttemplate='%{y:,.2f}', textposition='outside')  # Mostrar valores en las barras
+        fig.update_traces(texttemplate=f'%{{y:,.2f}}', textposition='outside')  # Mostrar valores en las barras
         fig.update_layout(
             xaxis_title='Periodo',
             yaxis_title='Puntaje',
@@ -336,7 +340,7 @@ if button_min:
             title='Puntaje por Periodo', 
             labels={'PUNTAJE': 'Puntaje', 'periodo': 'Periodo'},
             color = 'PUNTAJE',
-            color_continuous_scale= 'Cividis'
+            color_continuous_scale="Reds"
         )
         
         # Mejorar la visualización
@@ -367,7 +371,7 @@ if button_mean:
             title='Puntaje por Periodo', 
             labels={'PUNTAJE': 'Puntaje', 'periodo': 'Periodo'},
             color = 'PUNTAJE',
-            color_continuous_scale= 'Cividis'            
+            color_continuous_scale="Reds"            
         )
         
         # Mejorar la visualización
@@ -421,8 +425,6 @@ competencia_areas['proportion'] = ((
 # # Ordena los valores numéricos
 competencia_areas = competencia_areas.sort_values('proportion').reset_index()
 
-competencia_mean = competencia_areas.groupby(['CODIGO DE AREA'])['proportion'].mean().reset_index()
-
 ponderado_mean = competencia_areas.groupby('CODIGO DE AREA').agg(
     {
         'TOTAL POSTULANTES':'sum',
@@ -437,13 +439,17 @@ fig = px.scatter(
     ponderado_mean, 
     x="ponderado", 
     y = 'TOTAL POSTULANTES',
-    color="CODIGO DE AREA", 
+    color="TOTAL POSTULANTES", 
+    size = 'ALCANZO VACANTE PRIMERA OPCION',
+    color_continuous_scale= 'Inferno',
     title=f"Areas mas complejas para alcanzar una vacante",
+
     labels={
         "periodo": "Periodo",
         "ALCANZO VACANTE PRIMERA OPCION": "Cantidad de ingresantes",
         "CODIGO DE AREA": "Área"
-    }
+    },
+    hover_data={'CODIGO DE AREA':True}
 )
 
 # fig.update_traces(mode="lines+markers", line_shape="spline")  # Suavizar líneas y mantener marcadores
@@ -481,3 +487,196 @@ with st.container():
         st.write('Area B la area menos competitiva:')
         st.write('Área B tiene el menor número de postulantes (3,050) y la proporción más alta (0.2866). Esto indica que los postulantes en esta área tienen una mayor probabilidad de obtener una vacante en su primera opción.')
         
+
+
+
+st.markdown(
+    "<h1 style='text-align: center; font-family: Arial, sans-serif; font-size: 24px;'>Ranking de carreras más difíciles de ingresar</h1>",
+    unsafe_allow_html=True)
+
+st.write(
+    """
+    El **Ranking de carreras más difíciles de ingresar** presenta un análisis basado en los resultados 
+    de los últimos cuatro exámenes de admisión, destacando las opciones académicas con mayor nivel 
+    de competencia. Este ranking ofrece dos alternativas: explorar las carreras de manera general 
+    o visualizar los resultados por áreas específicas. De esta forma, los aspirantes pueden identificar 
+    las carreras más demandadas y desafiantes, considerando tanto el panorama general como la 
+    competitividad dentro de cada área.
+    """
+)
+
+
+
+# general = st.button('TODAS LAS CARRERAS', key = 'general', use_container_width=True)
+
+# if general:
+
+examanes = resultados_exam['periodo'].unique()
+
+examenes_slider = st.select_slider('Selecciona un examen', options=examanes)
+
+examanes_filtered = resultados_exam[resultados_exam['periodo'] == examenes_slider]
+
+competencia_career = examanes_filtered.pivot_table(
+    index = ['periodo', 'CARRERA (PRIMERA OPCION)', 'CODIGO DE AREA'], columns = 'OBSERVACION', values='CODIGO DEL ESTUDIANTE', aggfunc= 'count'
+).fillna(0).reset_index()
+
+
+# #ccreamos una fila con el total de postulanes sumando todas las observaciones
+competencia_career['TOTAL POSTULANTES'] = (
+    competencia_career.get('ALCANZO VACANTE PRIMERA OPCION', 0) 
+    + competencia_career.get('ALCANZO VACANTE SEGUNDA OPCION', 0)
+    + competencia_career.get('ANULADO', 0)
+    + competencia_career.get('AUSENTE', 0)
+    + competencia_career.get('NO ALCANZO VACANTE', 0)
+)
+
+# #borramos las columnas que no nos sirve porque solo queremos ver los que ingresaron con primera opcion    
+competencia_career = competencia_career[
+    ['periodo', 'CARRERA (PRIMERA OPCION)','ALCANZO VACANTE PRIMERA OPCION', 'TOTAL POSTULANTES']
+].dropna(axis = 1, how = 'all')
+
+competencia_career['proportion'] = ((
+    competencia_career['ALCANZO VACANTE PRIMERA OPCION']
+
+) / competencia_career['TOTAL POSTULANTES'])
+
+# # # Ordena los valores numéricos
+competencia_career = competencia_career.sort_values('proportion').reset_index()
+
+ponderado_career_mean = competencia_career.groupby('CARRERA (PRIMERA OPCION)').agg(
+    {
+        'TOTAL POSTULANTES':'sum',
+        'ALCANZO VACANTE PRIMERA OPCION': 'sum'
+    }
+).reset_index()
+
+ponderado_career_mean['ponderado'] = (ponderado_career_mean ['ALCANZO VACANTE PRIMERA OPCION'] / 
+ponderado_career_mean ['TOTAL POSTULANTES']).sort_values(ascending = False)
+
+ponderado_career_mean = ponderado_career_mean.sort_values(by='ponderado', ascending=False)
+
+# Crear la gráfica con Plotly Express
+figE = px.scatter(
+    ponderado_career_mean, 
+    x="ponderado", 
+    y = 'TOTAL POSTULANTES',
+    color="ponderado", 
+    size = 'ALCANZO VACANTE PRIMERA OPCION',
+    color_continuous_scale= 'Inferno',
+    title=f"Carreras mas complejas para alcanzar una vacante en el periodo {examenes_slider}",
+    hover_data={'CARRERA (PRIMERA OPCION)': True}
+)
+
+
+# Configurar el rango del eje X
+# Expandir límites automáticamente y agregar margen
+fig.update_xaxes(
+    range=None,  # Habilitar rango dinámico
+    autorange=True,  # Expandir los límites automáticamente
+    title=dict(text="Proporción")  # Etiqueta personalizada
+)
+
+st.plotly_chart(figE)
+
+st.divider()
+st.title('Carreras mas complejas por area')
+st.write(
+    """
+        En esta seccion se analizará las carreras mas complejas a las mas accesibles por periodo
+        de cada area del examen de admision.
+    """
+)
+# por_area = st.button('POR AREA', key = 'area', use_container_width=True)    
+
+# if por_area:
+
+examanes_area = resultados_exam['periodo'].unique()
+
+examenes_area_slider = st.select_slider('Selecciona un examen', options=examanes_area, key = 'area')
+
+examanes_area_filtered = resultados_exam[resultados_exam['periodo'] == examenes_area_slider]
+
+for area in examanes_area_filtered['CODIGO DE AREA'].unique():
+        filtered_area = examanes_area_filtered[examanes_area_filtered['CODIGO DE AREA'] == area]
+        competencia_career = filtered_area.pivot_table(
+            index = ['periodo', 'CARRERA (PRIMERA OPCION)', 'CODIGO DE AREA'], columns = 'OBSERVACION', values='CODIGO DEL ESTUDIANTE', aggfunc= 'count'
+        ).fillna(0).reset_index()
+        
+        # #ccreamos una fila con el total de postulanes sumando todas las observaciones
+        competencia_career['TOTAL POSTULANTES'] = (
+            competencia_career.get('ALCANZO VACANTE PRIMERA OPCION', 0) 
+            + competencia_career.get('ALCANZO VACANTE SEGUNDA OPCION', 0)
+            + competencia_career.get('ANULADO', 0)
+            + competencia_career.get('AUSENTE', 0)
+            + competencia_career.get('NO ALCANZO VACANTE', 0)
+        )
+
+
+
+        # #borramos las columnas que no nos sirve porque solo queremos ver los que ingresaron con primera opcion    
+        competencia_career = competencia_career[
+            ['periodo', 'CARRERA (PRIMERA OPCION)','ALCANZO VACANTE PRIMERA OPCION', 'TOTAL POSTULANTES']
+        ].dropna(axis = 1, how = 'all')
+
+
+
+        competencia_career['proportion'] = ((
+            competencia_career['ALCANZO VACANTE PRIMERA OPCION']
+
+        ) / competencia_career['TOTAL POSTULANTES'])
+
+
+
+        # # # Ordena los valores numéricos
+        competencia_career = competencia_career.sort_values('proportion').reset_index()
+
+        ponderado_career_mean = competencia_career.groupby('CARRERA (PRIMERA OPCION)').agg(
+            {
+                'TOTAL POSTULANTES':'sum',
+                'ALCANZO VACANTE PRIMERA OPCION': 'sum'
+            }
+        ).reset_index()
+
+        ponderado_career_mean['ponderado'] = (ponderado_career_mean ['ALCANZO VACANTE PRIMERA OPCION'] / 
+        ponderado_career_mean ['TOTAL POSTULANTES']).sort_values(ascending = False)
+
+        ponderado_career_mean = ponderado_career_mean.sort_values(by='ponderado')
+        
+        # Crear la gráfica con Plotly Express
+        figal = px.scatter(
+            ponderado_career_mean, 
+            x="ponderado", 
+            y = 'TOTAL POSTULANTES',
+            color="ponderado", 
+            size = 'ALCANZO VACANTE PRIMERA OPCION',
+            color_continuous_scale= 'Inferno',
+            title=f"Carreras mas complejas para alcanzar una vacante en el area {area}",
+            hover_data={'CARRERA (PRIMERA OPCION)': True}
+
+        )
+
+        # fig.update_traces(mode="lines+markers", line_shape="spline")  # Suavizar líneas y mantener marcadores
+
+        # Configurar el rango del eje X
+        # Expandir límites automáticamente y agregar margen
+        fig.update_xaxes(
+            range=None,  # Habilitar rango dinámico
+            autorange=True,  # Expandir los límites automáticamente
+            title=dict(text="Proporción")  # Etiqueta personalizada
+        )
+
+        st.plotly_chart(figal)
+
+
+        st.write(
+            f"""  
+            Las 2 carreras con mayor dificultad para alcanzar una vacante para el area {area} son:
+            {ponderado_career_mean['CARRERA (PRIMERA OPCION)'].iloc[0]} ({round(ponderado_career_mean['ponderado'].iloc[0] * 100,2)}%) , y {ponderado_career_mean['CARRERA (PRIMERA OPCION)'].iloc[1]}
+            ({round(ponderado_career_mean['ponderado'].iloc[1] * 100,2)}%)
+
+                    """
+        )
+        
+
+    
